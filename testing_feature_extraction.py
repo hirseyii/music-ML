@@ -23,3 +23,10 @@ lb.display.specshow(chromagram_cqt)
 plt.colorbar()
 plt.title("cqt")
 plt.show()
+
+#--------------------
+# tonnetz
+tonnetz = lb.feature.tonnetz(y=track, sr=sr)
+lb.display.specshow(tonnetz, y_axis='tonnetz')
+plt.colorbar()
+plt.show()
