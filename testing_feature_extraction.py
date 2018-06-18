@@ -1,7 +1,6 @@
 """
 Naim Sen
 -Jun 18-
-
 """
 # A script to test simple feature extraction using librosa
 # Test using audio included in the sample folder (Red Hot Chilli Peppers albums)
