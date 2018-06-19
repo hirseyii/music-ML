@@ -23,9 +23,20 @@ mag_filter = lb.decompose.nn_filter(mag, aggregate=np.median, metric='cosine',
 # (vocal + instrumental) magnitudes: pointwise minimum
 mag_filter = np.minimum(mag, mag_filter)
 
-# lets try by using the raw filter instead of a softmask
-front = mag * mag_filter
-back = mag * (mag - mag_filter)
+# generating a softmask
+margin_i, margin_v = 2, 10
+power = 2
 
-lb.output.write_wav('front_hard_filter.wav', lb.core.istft(front), sr)
-lb.output.write_wav('back_hard_filter.wav', lb.core.istft(back), sr)
+mask_i = librosa.util.softmask(mag_filter,
+                               margin_i * (mag - mag_filter),
+                               power=power)
+
+mask_v = librosa.util.softmask(mag - mag_filter,
+                               margin_v * mag_filter,
+                               power=power)
+
+front = mag * mask_v
+back = mag * mask_i
+
+lb.output.write_wav('front_softmask.wav', lb.core.istft(front), sr)
+lb.output.write_wav('back_softmask.wav', lb.core.istft(back), sr)
