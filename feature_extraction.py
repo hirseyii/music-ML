@@ -19,6 +19,10 @@ hop_length = 512
 y, sr = lb.load(track_path)
 features_dict = OrderedDict()
 
+# ===============useful decompositions================
+p_y, h_y = lb.effects.hpss(y)
+
+
 # ===============whole-track features=================
 # -----------------spectral features------------------
 # spectral centroid
@@ -46,4 +50,5 @@ t_rolloff = lb.feature.spectral_rolloff(y=y, sr=sr, n_fft=n_fft, hop_length=hop_
 t_rolloff_avg = np.mean(t_rolloff)
 t_rolloff_std = np.std(t_rolloff)
 features_dict.update({'t_rolloff_avg':t_rolloff_avg, 't_rolloff_std':t_rolloff_std})
-# ------------------chromatic features----------------
+# --------------chromatic/tonal features--------------
+# compute beat-synched chromagram
