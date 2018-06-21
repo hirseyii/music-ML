@@ -24,19 +24,41 @@ mag_filter = lb.decompose.nn_filter(mag, aggregate=np.median, metric='cosine',
 mag_filter = np.minimum(mag, mag_filter)
 
 # generating a softmask
-margin_i, margin_v = 2, 10
+margin_i, margin_v = 2, 15
 power = 2
 
-mask_i = librosa.util.softmask(mag_filter,
+mask_i = lb.util.softmask(mag_filter,
                                margin_i * (mag - mag_filter),
                                power=power)
 
-mask_v = librosa.util.softmask(mag - mag_filter,
+mask_v = lb.util.softmask(mag - mag_filter,
                                margin_v * mag_filter,
                                power=power)
 
 front = mag * mask_v
 back = mag * mask_i
+# Write to file
+lb.output.write_wav('front_softmask2.wav', lb.core.istft(front), sr)
+lb.output.write_wav('back_softmask2.wav', lb.core.istft(back), sr)
+"""
+# generate 3 chromagrams
+plt.figure(figsize=(12, 8))
+plt.subplot(3, 1, 1)
+lb.display.specshow(lb.amplitude_to_db(mag, ref=np.max),
+                         y_axis='log', sr=sr)
+plt.title('Full spectrum')
+plt.colorbar()
 
-lb.output.write_wav('front_softmask.wav', lb.core.istft(front), sr)
-lb.output.write_wav('back_softmask.wav', lb.core.istft(back), sr)
+plt.subplot(3, 1, 2)
+lb.display.specshow(lb.amplitude_to_db(back, ref=np.max),
+                         y_axis='log', sr=sr)
+plt.title('Background')
+plt.colorbar()
+plt.subplot(3, 1, 3)
+lb.display.specshow(lb.amplitude_to_db(front, ref=np.max),
+                         y_axis='log', x_axis='time', sr=sr)
+plt.title('Foreground')
+plt.colorbar()
+plt.tight_layout()
+plt.show()
+"""
