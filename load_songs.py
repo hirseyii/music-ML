@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 -Naim Sen-
 Adapted from A. Clarke:
@@ -5,6 +6,8 @@ https://github.com/informationcake/music-machine-learning
 Jun 18
 """
 
+=======
+>>>>>>> 8f8d09ea588b9c5860a9d259c264d418c84420f3
 # -*- coding: utf-8 -*-
 import librosa.display
 import librosa as lb
@@ -218,7 +221,11 @@ if __name__ == "__main__":
         song_name=[] #text
         song_data=[] #list of numbers
         song_sr=[] #sample rate
+<<<<<<< HEAD
         for song1 in songdb:
+=======
+        for song1 in songdb: 
+>>>>>>> 8f8d09ea588b9c5860a9d259c264d418c84420f3
             song_name.append(song1[0])
             song_data.append(song1[1])
             song_sr.append(song1[2])
