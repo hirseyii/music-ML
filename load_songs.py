@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 -Naim Sen-
 Adapted from A. Clarke:
@@ -5,7 +6,6 @@ https://github.com/informationcake/music-machine-learning
 Jun 18
 """
 
-# -*- coding: utf-8 -*-
 import librosa.display
 import librosa as lb
 import os
@@ -92,7 +92,7 @@ def get_features_mean(song,sr,hop_length,n_fft):
         centroid=lb.feature.spectral_centroid(song, sr, n_fft=n_fft, hop_length=hop_length)	#Compute the spectral centroid.
         centroid_a=np.mean(centroid)
         centroid_std=np.std(centroid)
-        bw=lb.feature.spectral_bandwidth(song, sr, n_fft=n_fft, hop_length=hop_length)	#Compute p’th-order spectral bandwidth:
+        bw=lb.feature.spectral_bandwidth(song, sr, n_fft=n_fft, hop_length=hop_length)	#Compute pth-order spectral bandwidth:
         bw_a=np.mean(bw)
         bw_std=np.std(bw)
         contrast=lb.feature.spectral_contrast(song, sr, n_fft=n_fft, hop_length=hop_length)	#Compute spectral contrast [R16]
@@ -179,7 +179,7 @@ if __name__ == "__main__":
         start_load=time.time() #we're going to want know how long this takes...
         num_workers = multiprocessing.cpu_count() #if we don't use multiple cores we may as well give up now. This is how many your computer has.
         print('you have {0} cores available to do your bidding...'.format(num_workers))
-        num_workers=32 #I was playing around with changing this
+        #num_workers=32 #I was playing around with changing this
         #multi=int(sys.argv[1]) #at one point I was testing this as a command line input
         n_fft1=2050 #important parameter here; this is the size of the fft window. these are sensible values
         hop_length1=441 #n_fft/5 is a sensisble value. too large and you don't sample properly.
@@ -218,11 +218,7 @@ if __name__ == "__main__":
         song_name=[] #text
         song_data=[] #list of numbers
         song_sr=[] #sample rate
-<<<<<<< HEAD
         for song1 in songdb:
-=======
-        for song1 in songdb:
->>>>>>> 8f8d09ea588b9c5860a9d259c264d418c84420f3
             song_name.append(song1[0])
             song_data.append(song1[1])
             song_sr.append(song1[2])
