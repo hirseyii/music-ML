@@ -53,8 +53,8 @@ def get_features_mean(song,sr,hop_length,n_fft):
             bands_int=bands.astype(int)
             bands_int_unique=list(unique_everseen(bands_int)) #removing double entries less than 100Hz, because logspace bunches up down there and we don't need doubles when rounding to the nearest 10 Hz.
             for i in range(0,len(bands_int_unique)-1):
-                _h=lb.feature.rmse(y=(splitF(bands_int_unique[i],bands_int_unique[i+1],stft_harmonic)))
-                _p=lb.feature.rmse(y=(splitF(bands_int_unique[i],bands_int_unique[i+1],stft_percussive)))
+                _h=lb.feature.rmse(S=(splitF(bands_int_unique[i],bands_int_unique[i+1],stft_harmonic)))
+                _p=lb.feature.rmse(S=(splitF(bands_int_unique[i],bands_int_unique[i+1],stft_percussive)))
                 #Calculate statistics for harmoinc and percussive over the time series.
                 rms_h=np.mean(np.abs(_h))
                 std_h=np.std(np.abs(_h))
@@ -77,13 +77,13 @@ def get_features_mean(song,sr,hop_length,n_fft):
         #rmse=lb.feature.rmse(y=song)	#Compute root-mean-square (RMS) energy for each frame, either from the audio samples y or from a spectrogram S.
         #rmse_a=np.mean(rmse)
         #rmse_std=np.std(rmse)
-        rmseH=np.abs(lb.feature.rmse(y=stft_harmonic))	#Compute root-mean-square (RMS) energy for harmonic
+        rmseH=np.abs(lb.feature.rmse(S=stft_harmonic))	#Compute root-mean-square (RMS) energy for harmonic
         rmseH_a=np.mean(rmseH)
         rmseH_std=np.std(rmseH)
         rmseH_skew=skew(np.mean(rmseH, axis=0))
         rmseH_kurtosis=kurtosis(np.mean(rmseH, axis=0), fisher=True, bias=True)
 
-        rmseP=np.abs(lb.feature.rmse(y=stft_percussive))	#Compute root-mean-square (RMS) energy for percussive
+        rmseP=np.abs(lb.feature.rmse(S=stft_percussive))	#Compute root-mean-square (RMS) energy for percussive
         rmseP_a=np.mean(rmseP)
         rmseP_std=np.std(rmseP)
         rmseP_skew=skew(np.mean(rmseP, axis=0))
