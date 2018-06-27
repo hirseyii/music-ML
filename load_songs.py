@@ -44,7 +44,7 @@ def splitF(minv, maxv, songdat):
 
 #This is the main function which gets features from the songs. Most values returned are the mean of the whole time series, hence '_a'.
 def get_features_mean(song,sr,hop_length,n_fft):
-    try:
+ #  try:
         print('extracting features...')
         y_harmonic, y_percussive = lb.effects.hpss(song) #split song into harmonic and percussive parts
         stft_harmonic=lb.core.stft(y_harmonic, n_fft=n_fft, hop_length=hop_length)	#Compute power spectrogram.
@@ -115,10 +115,12 @@ def get_features_mean(song,sr,hop_length,n_fft):
         polyfeat=lb.feature.poly_features(y_harmonic, sr, n_fft=n_fft, hop_length=hop_length)
         polyfeat_a=np.mean(polyfeat[0])
         polyfeat_std=np.std(polyfeat[0])
+        """
         # Computes the tonal centroid features (tonnetz), following the method of [R17].
         tonnetz=lb.feature.tonnetz(librosa.effects.harmonic(y_harmonic), sr)
         tonnetz_a=np.mean(tonnetz)
         tonnetz_std=np.std(tonnetz)
+        """
         # zero crossing rate
         zcr=lb.feature.zero_crossing_rate(song, sr, hop_length=hop_length)
         zcr_a=np.mean(zcr)
@@ -127,12 +129,39 @@ def get_features_mean(song,sr,hop_length,n_fft):
         onset_env=lb.onset.onset_strength(y_percussive, sr=sr)
         onset_a=np.mean(onset_env)
         onset_std=np.std(onset_env)
-        #==========================Chromatic Features===========================
+
+        # Beat sync stuff
         D = librosa.stft(song)
         times = librosa.frames_to_time(np.arange(D.shape[1])) #not returned, but could be if you want to plot things as a time series
         bpm,beats=lb.beat.beat_track(y=y_percussive, sr=sr, onset_envelope=onset_env, units='time')
         beats_a=np.mean(beats)
         beats_std=np.std(beats)
+        # Add features to dictionary
+        features_dict.update({
+            'rmseP_a':rmseP_a,
+            'rmseP_std':rmseP_std,
+            'rmseH_a':rmseH_a,
+            'rmseH_std':rmseH_std,
+            'centroid_a':centroid_a,
+            'centroid_std':centroid_std,
+            'bw_a':bw_a,'bw_std':bw_std,
+            'contrast_a':contrast_a,
+            'contrast_std':contrast_std,
+            'polyfeat_a':polyfeat_a,
+            'polyfeat_std':polyfeat_std,
+           # 'tonnetz_a':tonnetz_a,
+           # 'tonnetz_std':tonnetz_std,
+            'zcr_a':zcr_a,
+            'zcr_std':zcr_std,
+            'onset_a':onset_a,
+            'onset_std':onset_std,
+            'bpm':bpm,
+            'rmseP_skew':rmseP_skew,
+            'rmseP_kurtosis':rmseP_kurtosis,
+            'rmseH_skew':rmseH_skew,
+            'rmseH_kurtosis':rmseH_kurtosis
+        })
+        #==========================Chromatic Features===========================
         # Compute beat-synced chromagram
         chroma = lb.feature.chroma_cqt(y=song, sr=sr)
         fixed_beat = lb.util.fix_frames(beats, x_max=chroma.shape[1])
@@ -169,39 +198,24 @@ def get_features_mean(song,sr,hop_length,n_fft):
             'std_note_weight_e':np.std(chroma_synced[11,:])
         })
 
-        features_dict.update({
-            'rmseP_a':rmseP_a,
-            'rmseP_std':rmseP_std,
-            'rmseH_a':rmseH_a,
-            'rmseH_std':rmseH_std,
-            'centroid_a':centroid_a,
-            'centroid_std':centroid_std,
-            'bw_a':bw_a,'bw_std':bw_std,
-            'contrast_a':contrast_a,
-            'contrast_std':contrast_std,
-            'polyfeat_a':polyfeat_a,
-            'polyfeat_std':polyfeat_std,
-            'tonnetz_a':tonnetz_a,
-            'tonnetz_std':tonnetz_std,
-            'zcr_a':zcr_a,
-            'zcr_std':zcr_std,
-            'onset_a':onset_a,
-            'onset_std':onset_std,
-            'bpm':bpm,
-            'rmseP_skew':rmseP_skew,
-            'rmseP_kurtosis':rmseP_kurtosis,
-            'rmseH_skew':rmseH_skew,
-            'rmseH_kurtosis':rmseH_kurtosis
-        })
+        # Tonnetz rework - instead of just taking mean and stdev, we take the
+        # mean of each tonnetz dimension to give an average tonnetz position.
+        # Tonnetz dims are given in the librosa docs
+        tonnetz=lb.feature.tonnetz(y=song, sr=sr)
+        for dim in range(tonnetz.shape[0]):
+            features_dict.update({
+            'avg_tonnetz_{0}'.format(dim):np.mean(tonnetz[dim,:]),
+            'std_tonnetz_{0}'.format(dim):np.std(tonnetz[dim,:])
+            })        
 
         combine_features={**features_dict,**bands_dict}
         print('features extracted successfully')
         return combine_features
-
+"""
     except:
         print('.'*20+'FAILED'+'.'*20)
         print('.'*40)
-
+"""
 #a function to look at beat tracking... not used in machine learning yet, just random investigations.
 def beattrack(song,sr,hop_length,n_fft):
     y_harmonic, y_percussive = lb.effects.hpss(song)
@@ -314,7 +328,7 @@ if __name__ == "__main__":
             data_dict_mean.update({song_name[i]:res[i]})
 
         #print features to screen to check
-        print('The features extracted from the songs are: ')
+        print('{0} features were extracted. They are: '.format(len(res[0])))
         print(res[0].keys())
         print('saving dictionary to disk...')
         save_obj(data_dict_mean,savefile)

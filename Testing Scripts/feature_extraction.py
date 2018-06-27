@@ -102,3 +102,9 @@ features_dict.update({
 })
 
 # Tonnetz
+tonnetz=lb.feature.tonnetz(y=y, sr=sr)
+        for dim in range(tonnetz.shape[0]):
+            features_dict.update({
+            'avg_tonnetz_'+dim:np.mean(tonnetz[dim,:]),
+            'std_tonnetz_'+dim:np.std(tonnetz[dim,:])
+            })
