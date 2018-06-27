@@ -101,8 +101,6 @@ features_dict = OrderedDict()
 #     'std_note_weight_e':np.std(chroma_synced[11,:])
 # })
 
-# Tonnetz
-tonnetz = lb.feature.tonnetz(y=y, sr=sr)
-for dim in range(tonnetz.shape[0]):
-    print(np.mean(tonnetz[dim,:]))
 
+# Polyfeat
+polyfeat = lb.feature.poly_features(y=y, sr=sr)
