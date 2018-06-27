@@ -21,17 +21,21 @@ from  more_itertools import unique_everseen
 from scipy.stats import skew
 from scipy.stats import kurtosis
 
-#This python script will load in songs and extract features from the waveform. It will then create a dictionary of all the results, ready for plotting in another script.
-#At the top we have a load of functions pre-defined, skip down to __main__ to see the steps we run
+# This python script will load in songs and extract features from the waveform.
+# It will then create a dictionary of all the results, ready for plotting in another script.
+# At the top we have a load of functions pre-defined, skip down to __main__ to see the steps we run
 
-#a function to split up a song into TIME chunks
+# a function to split up a song into TIME chunks
 def splitT(mint,maxt,songdat):
     splittime=[]
     for i in range(mint,maxt):
-        splittime.append(songdat[:,i]) # first axis is freq, second axis is time. Return all freq for specific time range.
+        splittime.append(songdat[:,i])  # first axis is freq, second axis is time.
+    # Return all freq for specific time range.
     return (np.array(splittime))
 
-#a function to split up a song into FREQ chunks
+# a function to split up a song into FREQ chunks
+
+
 def splitF(minv, maxv, songdat):
     splitfreq = []
     for i in range(minv,maxv):
@@ -46,6 +50,8 @@ def get_features_mean(song,sr,hop_length,n_fft):
         stft_harmonic=lb.core.stft(y_harmonic, n_fft=n_fft, hop_length=hop_length)	#Compute power spectrogram.
         stft_percussive=lb.core.stft(y_percussive, n_fft=n_fft, hop_length=hop_length)	#Compute power spectrogram.
         #stft_all=lb.core.stft(song, n_fft=n_fft, hop_length=hop_length)	#Compute power spectrogram.
+
+        #=========Split by frequency bands and compute RMSE features============
         band_resolution=[5] #[5,25] Choose number of bands, do low and high resolution?
         bands_dict=OrderedDict()
         for no_bands in band_resolution:
@@ -77,44 +83,89 @@ def get_features_mean(song,sr,hop_length,n_fft):
         #rmse=lb.feature.rmse(y=song)	#Compute root-mean-square (RMS) energy for each frame, either from the audio samples y or from a spectrogram S.
         #rmse_a=np.mean(rmse)
         #rmse_std=np.std(rmse)
-        rmseH=np.abs(lb.feature.rmse(S=stft_harmonic))	#Compute root-mean-square (RMS) energy for harmonic
+        #Compute root-mean-square (RMS) energy for harmonic
+        rmseH=np.abs(lb.feature.rmse(S=stft_harmonic))
         rmseH_a=np.mean(rmseH)
         rmseH_std=np.std(rmseH)
         rmseH_skew=skew(np.mean(rmseH, axis=0))
         rmseH_kurtosis=kurtosis(np.mean(rmseH, axis=0), fisher=True, bias=True)
-
-        rmseP=np.abs(lb.feature.rmse(S=stft_percussive))	#Compute root-mean-square (RMS) energy for percussive
+        #Compute root-mean-square (RMS) energy for percussive
+        rmseP=np.abs(lb.feature.rmse(S=stft_percussive))
         rmseP_a=np.mean(rmseP)
         rmseP_std=np.std(rmseP)
         rmseP_skew=skew(np.mean(rmseP, axis=0))
         rmseP_kurtosis=kurtosis(np.mean(rmseP, axis=0), fisher=True, bias=True)
 
-        centroid=lb.feature.spectral_centroid(song, sr, n_fft=n_fft, hop_length=hop_length)	#Compute the spectral centroid.
+        #========================Whole-song spectral features===================
+        #Compute the spectral centroid.
+        centroid=lb.feature.spectral_centroid(song, sr, n_fft=n_fft, hop_length=hop_length)
         centroid_a=np.mean(centroid)
         centroid_std=np.std(centroid)
-        bw=lb.feature.spectral_bandwidth(song, sr, n_fft=n_fft, hop_length=hop_length)	#Compute pth-order spectral bandwidth:
+        #Compute pth-order spectral bandwidth:
+        bw=lb.feature.spectral_bandwidth(song, sr, n_fft=n_fft, hop_length=hop_length)
         bw_a=np.mean(bw)
         bw_std=np.std(bw)
-        contrast=lb.feature.spectral_contrast(song, sr, n_fft=n_fft, hop_length=hop_length)	#Compute spectral contrast [R16]
+        #Compute spectral contrast [R16]
+        contrast=lb.feature.spectral_contrast(song, sr, n_fft=n_fft, hop_length=hop_length)
         contrast_a=np.mean(contrast)
         contrast_std=np.std(contrast)
-        polyfeat=lb.feature.poly_features(y_harmonic, sr, n_fft=n_fft, hop_length=hop_length)	#Get coefficients of fitting an nth-order polynomial to the columns of a spectrogram.
+        # Get coefficients of fitting an nth-order polynomial to the columns of a spectrogram.
+        polyfeat=lb.feature.poly_features(y_harmonic, sr, n_fft=n_fft, hop_length=hop_length)
         polyfeat_a=np.mean(polyfeat[0])
         polyfeat_std=np.std(polyfeat[0])
-        tonnetz=lb.feature.tonnetz(librosa.effects.harmonic(y_harmonic), sr)	#Computes the tonal centroid features (tonnetz), following the method of [R17].
+        # Computes the tonal centroid features (tonnetz), following the method of [R17].
+        tonnetz=lb.feature.tonnetz(librosa.effects.harmonic(y_harmonic), sr)
         tonnetz_a=np.mean(tonnetz)
         tonnetz_std=np.std(tonnetz)
-        zcr=lb.feature.zero_crossing_rate(song, sr, hop_length=hop_length)  #zero crossing rate
+        # zero crossing rate
+        zcr=lb.feature.zero_crossing_rate(song, sr, hop_length=hop_length)
         zcr_a=np.mean(zcr)
         zcr_std=np.std(zcr)
+        # onset
         onset_env=lb.onset.onset_strength(y_percussive, sr=sr)
         onset_a=np.mean(onset_env)
         onset_std=np.std(onset_env)
+        #==========================Chromatic Features===========================
         D = librosa.stft(song)
         times = librosa.frames_to_time(np.arange(D.shape[1])) #not returned, but could be if you want to plot things as a time series
         bpm,beats=lb.beat.beat_track(y=y_percussive, sr=sr, onset_envelope=onset_env, units='time')
         beats_a=np.mean(beats)
         beats_std=np.std(beats)
+        # Compute beat-synced chromagram
+        chroma = lb.feature.chroma_cqt(y=song, sr=sr)
+        fixed_beat = lb.util.fix_frames(beat, x_max=chroma.shape[1])
+        chroma_synced = lb.util.sync(chroma, fixed_beat, aggregate=np.median)
+        # compute average note weight
+        # notes are labelled using the duodecimal convention t=10, e=11
+        features_dict.update({
+            'avg_note_weight_0':np.mean(chroma_synced[0,:]),
+            'avg_note_weight_1':np.mean(chroma_synced[1,:]),
+            'avg_note_weight_2':np.mean(chroma_synced[2,:]),
+            'avg_note_weight_3':np.mean(chroma_synced[3,:]),
+            'avg_note_weight_4':np.mean(chroma_synced[4,:]),
+            'avg_note_weight_5':np.mean(chroma_synced[5,:]),
+            'avg_note_weight_6':np.mean(chroma_synced[6,:]),
+            'avg_note_weight_7':np.mean(chroma_synced[7,:]),
+            'avg_note_weight_8':np.mean(chroma_synced[8,:]),
+            'avg_note_weight_9':np.mean(chroma_synced[9,:]),
+            'avg_note_weight_t':np.mean(chroma_synced[10,:]),
+            'avg_note_weight_e':np.mean(chroma_synced[11,:])
+        })
+        #std note weight
+        features_dict.update({
+            'std_note_weight_0':np.std(chroma_synced[0,:]),
+            'std_note_weight_1':np.std(chroma_synced[1,:]),
+            'std_note_weight_2':np.std(chroma_synced[2,:]),
+            'std_note_weight_3':np.std(chroma_synced[3,:]),
+            'std_note_weight_4':np.std(chroma_synced[4,:])
+            'std_note_weight_5':np.std(chroma_synced[5,:]),
+            'std_note_weight_6':np.std(chroma_synced[6,:]),
+            'std_note_weight_7':np.std(chroma_synced[7,:]),
+            'std_note_weight_8':np.std(chroma_synced[8,:]),
+            'std_note_weight_9':np.std(chroma_synced[9,:]),
+            'std_note_weight_t':np.std(chroma_synced[10,:]),
+            'std_note_weight_e':np.std(chroma_synced[11,:])
+        })
 
         features_dict=OrderedDict({'rmseP_a':rmseP_a,'rmseP_std':rmseP_std,'rmseH_a':rmseH_a,'rmseH_std':rmseH_std,'centroid_a':centroid_a,'centroid_std':centroid_std,'bw_a':bw_a,'bw_std':bw_std,'contrast_a':contrast_a,'contrast_std':contrast_std,'polyfeat_a':polyfeat_a,'polyfeat_std':polyfeat_std,'tonnetz_a':tonnetz_a,'tonnetz_std':tonnetz_std,'zcr_a':zcr_a,'zcr_std':zcr_std,'onset_a':onset_a,'onset_std':onset_std,'bpm':bpm, 'rmseP_skew':rmseP_skew, 'rmseP_kurtosis':rmseP_kurtosis, 'rmseH_skew':rmseH_skew, 'rmseH_kurtosis':rmseH_kurtosis})
 
@@ -187,8 +238,8 @@ if __name__ == "__main__":
         #create song database, songdb:
         songname_tmp=[]
         songpath_tmp=[]
-        #path='./audio_alex/'
-        path=sys.argv[1] #the only command line input is the path to the folder of music
+        path='./sample/'
+        #path=sys.argv[1] #the only command line input is the path to the folder of music
         print(path)
         savefile=str(path)+'_data' #it's saved with the same folder name but with _data.pkl on the end.
         #now load song data in
