@@ -97,6 +97,8 @@ def get_features_mean(song,sr,hop_length,n_fft):
         rmseP_kurtosis=kurtosis(np.mean(rmseP, axis=0), fisher=True, bias=True)
 
         #========================Whole-song spectral features===================
+        # Declare dictionary
+        features_dict=OrderedDict()
         #Compute the spectral centroid.
         centroid=lb.feature.spectral_centroid(song, sr, n_fft=n_fft, hop_length=hop_length)
         centroid_a=np.mean(centroid)
@@ -133,7 +135,7 @@ def get_features_mean(song,sr,hop_length,n_fft):
         beats_std=np.std(beats)
         # Compute beat-synced chromagram
         chroma = lb.feature.chroma_cqt(y=song, sr=sr)
-        fixed_beat = lb.util.fix_frames(beat, x_max=chroma.shape[1])
+        fixed_beat = lb.util.fix_frames(beats, x_max=chroma.shape[1])
         chroma_synced = lb.util.sync(chroma, fixed_beat, aggregate=np.median)
         # compute average note weight
         # notes are labelled using the duodecimal convention t=10, e=11
@@ -157,7 +159,7 @@ def get_features_mean(song,sr,hop_length,n_fft):
             'std_note_weight_1':np.std(chroma_synced[1,:]),
             'std_note_weight_2':np.std(chroma_synced[2,:]),
             'std_note_weight_3':np.std(chroma_synced[3,:]),
-            'std_note_weight_4':np.std(chroma_synced[4,:])
+            'std_note_weight_4':np.std(chroma_synced[4,:]),
             'std_note_weight_5':np.std(chroma_synced[5,:]),
             'std_note_weight_6':np.std(chroma_synced[6,:]),
             'std_note_weight_7':np.std(chroma_synced[7,:]),
@@ -167,7 +169,30 @@ def get_features_mean(song,sr,hop_length,n_fft):
             'std_note_weight_e':np.std(chroma_synced[11,:])
         })
 
-        features_dict=OrderedDict({'rmseP_a':rmseP_a,'rmseP_std':rmseP_std,'rmseH_a':rmseH_a,'rmseH_std':rmseH_std,'centroid_a':centroid_a,'centroid_std':centroid_std,'bw_a':bw_a,'bw_std':bw_std,'contrast_a':contrast_a,'contrast_std':contrast_std,'polyfeat_a':polyfeat_a,'polyfeat_std':polyfeat_std,'tonnetz_a':tonnetz_a,'tonnetz_std':tonnetz_std,'zcr_a':zcr_a,'zcr_std':zcr_std,'onset_a':onset_a,'onset_std':onset_std,'bpm':bpm, 'rmseP_skew':rmseP_skew, 'rmseP_kurtosis':rmseP_kurtosis, 'rmseH_skew':rmseH_skew, 'rmseH_kurtosis':rmseH_kurtosis})
+        features_dict.update({
+            'rmseP_a':rmseP_a,
+            'rmseP_std':rmseP_std,
+            'rmseH_a':rmseH_a,
+            'rmseH_std':rmseH_std,
+            'centroid_a':centroid_a,
+            'centroid_std':centroid_std,
+            'bw_a':bw_a,'bw_std':bw_std,
+            'contrast_a':contrast_a,
+            'contrast_std':contrast_std,
+            'polyfeat_a':polyfeat_a,
+            'polyfeat_std':polyfeat_std,
+            'tonnetz_a':tonnetz_a,
+            'tonnetz_std':tonnetz_std,
+            'zcr_a':zcr_a,
+            'zcr_std':zcr_std,
+            'onset_a':onset_a,
+            'onset_std':onset_std,
+            'bpm':bpm,
+            'rmseP_skew':rmseP_skew,
+            'rmseP_kurtosis':rmseP_kurtosis,
+            'rmseH_skew':rmseH_skew,
+            'rmseH_kurtosis':rmseH_kurtosis
+        })
 
         combine_features={**features_dict,**bands_dict}
         print('features extracted successfully')
