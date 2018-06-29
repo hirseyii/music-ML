@@ -1,12 +1,31 @@
+"""
+-Naim Sen-
+Jun 18
+"""
+# A script to scrape youtube for videos given a query. Adapted from work
+# done previously for A. Clarke. Ensure that the script is used in accordance
+# with the YouTube TOS.
 from bs4 import BeautifulSoup as bs
 import requests
-#import pytube
+import os
 from pytube import YouTube
 page_num = 0
 count = 0
 base = "https://www.youtube.com/results?search_query="
 query = "nissan+advert"
 base += query
+
+# For saving to file we need to make a directory if it doesn't exist already
+# and check the file is empty etc.
+save_path = os.getcwd()+'\\SCRAPES_'+query.replace('+', '_')
+# if the path exists check it's empty
+if os.path.isdir(save_path):
+    if os.listdir(save_path) == []:
+        pass
+    else:
+        raise OSError(39, "Directory is not empty.", save_path)
+else:
+    os.makedirs(save_path)
 
 for page_num in range(1):
     r = requests.get(base)
@@ -37,8 +56,7 @@ for page_num in range(1):
 
             # set the output file name:
             #yt.set_filename(query+' '+str(count))
-
-            stream.download('./TestingScraping/')
+            stream.download(save_path)
 
             print('Downloaded video '+str(count))
 
