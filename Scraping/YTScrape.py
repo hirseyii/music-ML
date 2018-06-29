@@ -9,10 +9,13 @@ from bs4 import BeautifulSoup as bs
 import requests
 import os
 from pytube import YouTube
-page_num = 0
+
+num_pages = 1 # how many pages do you want to scrape?
+query = "nissan+advert"
+
+page_counter = 0
 count = 0
 base = "https://www.youtube.com/results?search_query="
-query = "nissan+advert"
 base += query
 
 # For saving to file we need to make a directory if it doesn't exist already
@@ -27,7 +30,8 @@ if os.path.isdir(save_path):
 else:
     os.makedirs(save_path)
 
-for page_num in range(1):
+for page_counter in range(num_pages):
+    # TOS "wait" here? 
     r = requests.get(base)
     # Parse search page
     page = r.text
@@ -42,7 +46,7 @@ for page_num in range(1):
             continue
         tmp = 'https://www.youtube.com' + v['href']
         videolist.append(tmp)
-    print('There are ',len(videolist),' videos returned for page '+str(page_num+1))
+    print('There are ',len(videolist),' videos returned for page '+str(page_counter+1))
 
     for item in videolist:
         try:
@@ -62,9 +66,9 @@ for page_num in range(1):
 
     # find the navigation buttons in the page html:
     buttons = soup.findAll('a',attrs={'class':"yt-uix-button vve-check yt-uix-sessionlink yt-uix-button-default yt-uix-button-size-default"})
-
     # the button for the next page is the last one in the list:
     nextbutton = buttons[-1]
-
     # get the url of the next page:
     base = 'https://www.youtube.com' + nextbutton['href']
+
+    # What about TOS? Do we need a "wait" here?
