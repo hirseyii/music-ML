@@ -2,56 +2,53 @@ from bs4 import BeautifulSoup as bs
 import requests
 #import pytube
 from pytube import YouTube
-i = 0
+page_num = 0
 count = 0
 base = "https://www.youtube.com/results?search_query="
 query = "nissan+advert"
 base += query
 
-for i in range(1):
+for page_num in range(1):
     r = requests.get(base)
-
+    # Parse search page
     page = r.text
     soup=bs(page,'html.parser')
-
+    # grab video links from HTML thumbnails
     vids = soup.findAll('a',attrs={'class':'yt-uix-tile-link'})
-
+    # generate a list of relevant video URLS
     videolist=[]
     for v in vids:
+        # parse href attribute for https to skip google adverts
+        if (v['href'][0:4] == 'http'):
+            continue
         tmp = 'https://www.youtube.com' + v['href']
         videolist.append(tmp)
-    
-    print('There are ',len(videolist),' videos returned for page '+str(i+1))
+    print('There are ',len(videolist),' videos returned for page '+str(page_num+1))
 
     for item in videolist:
         try:
-            # increment counter:
+            # increment counter
             count+=1
- 
-            # initiate the class:
+            # initialise Youtube object
             yt = YouTube(item)
-        
-            #formats = yt.streams.all()
-        
             mp4video = yt.streams.filter(progressive=True,file_extension='mp4',resolution='360p')
             #print (mp4video.all())
-        
             stream = mp4video.first()
-            
+
             # set the output file name:
             #yt.set_filename(query+' '+str(count))
-        
-            stream.download('/local/scratch/vanden/Music/Car/')
-            
+
+            stream.download('./TestingScraping/')
+
             print('Downloaded video '+str(count))
 
 
             # have a look at the different formats available:
             #formats = yt.get_videos()
- 
+
             # grab the video:
             #video = yt.get('mp4', '360p')
- 
+
             # download the video:
             #video.download('./')
         except Exception as e:
@@ -60,10 +57,9 @@ for i in range(1):
 
     # find the navigation buttons in the page html:
     buttons = soup.findAll('a',attrs={'class':"yt-uix-button vve-check yt-uix-sessionlink yt-uix-button-default yt-uix-button-size-default"})
- 
+
     # the button for the next page is the last one in the list:
     nextbutton = buttons[-1]
 
     # get the url of the next page:
     base = 'https://www.youtube.com' + nextbutton['href']
-	  
