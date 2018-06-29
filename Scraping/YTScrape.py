@@ -50,25 +50,12 @@ for page_num in range(1):
             count+=1
             # initialise Youtube object
             yt = YouTube(item)
-            mp4video = yt.streams.filter(progressive=True,file_extension='mp4',resolution='360p')
-            #print (mp4video.all())
-            stream = mp4video.first()
-
-            # set the output file name:
-            #yt.set_filename(query+' '+str(count))
-            stream.download(save_path)
+            # filter streams for audio only
+            audio_stream = yt.streams.get_by_itag(140) # Watch for changes https://github.com/nficano/pytube/issues/280
+            # download audio from stream
+            audio_stream.download(save_path)
 
             print('Downloaded video '+str(count))
-
-
-            # have a look at the different formats available:
-            #formats = yt.get_videos()
-
-            # grab the video:
-            #video = yt.get('mp4', '360p')
-
-            # download the video:
-            #video.download('./')
         except Exception as e:
             print("Error: ",e,"\n","Count: ",count)
             continue
