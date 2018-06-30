@@ -27,13 +27,17 @@ mag_filter = np.minimum(mag, mag_filter)
 margin_i, margin_v = 2, 15
 power = 2
 
-mask_i = lb.util.softmask(mag_filter,
-                               margin_i * (mag - mag_filter),
-                               power=power)
+mask_i = lb.util.softmask(
+    mag_filter,
+    margin_i * (mag - mag_filter),
+    power=power
+    )
 
-mask_v = lb.util.softmask(mag - mag_filter,
-                               margin_v * mag_filter,
-                               power=power)
+mask_v = lb.util.softmask(
+    mag - mag_filter,
+    margin_v * mag_filter,
+    power=power
+    )
 
 front = mag * mask_v
 back = mag * mask_i

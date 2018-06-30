@@ -8,7 +8,7 @@ import librosa.display
 import numpy as np
 
 # prepare track
-track_path = 'sample/03 Scar Tissue.mp3'
+track_path = '../sample/03 Scar Tissue.mp3'
 y, sr = lb.load(track_path)
 
 # harmonic + percussive

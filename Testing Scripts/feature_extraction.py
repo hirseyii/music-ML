@@ -47,59 +47,60 @@ def get_spectral_features(feature_dict, prefix, y, sr, n_fft, hop_length):
         print(ex.args)
         print(ex)
 # prepare track and dictionary for storing features
-track_path = 'sample/03 Scar Tissue.mp3'
+track_path = '../sample/03 Scar Tissue.mp3'
 n_fft = 2048
 hop_length = 512
 
 y, sr = lb.load(track_path)
 features_dict = OrderedDict()
 
-# ========useful decompositions & extractions=========
-p_y, h_y = lb.effects.hpss(y)
-tempo, beat = lb.beat.beat_track(y=y, sr=sr, trim=False)
+# # ========useful decompositions & extractions=========
+# p_y, h_y = lb.effects.hpss(y)
+# tempo, beat = lb.beat.beat_track(y=y, sr=sr, trim=False)
+#
+# # get whole-track features
+# get_spectral_features(features_dict, 't_', y, sr, n_fft, hop_length)
+# # get percussive/harmonic features
+# get_spectral_features(features_dict, 'p_', p_y, sr, n_fft, hop_length)
+# get_spectral_features(features_dict, 'h_', h_y, sr, n_fft, hop_length)
+# # --------------chromatic/tonal features--------------
+# # compute beat-synched chromagram
+# chroma = lb.feature.chroma_cqt(y=y, sr=sr)
+# fixed_beat = lb.util.fix_frames(beat, x_max=chroma.shape[1])
+# chroma_synced = lb.util.sync(chroma, fixed_beat, aggregate=np.median)
+# chroma_synced_t = lb.frames_to_time(fixed_beat, sr=sr)
+# # compute average note weight
+# # notes are labelled using the duodecimal convention t=10, e=11
+# features_dict.update({
+#     'avg_note_weight_0':np.mean(chroma_synced[0,:]),
+#     'avg_note_weight_1':np.mean(chroma_synced[1,:]),
+#     'avg_note_weight_2':np.mean(chroma_synced[2,:]),
+#     'avg_note_weight_3':np.mean(chroma_synced[3,:]),
+#     'avg_note_weight_4':np.mean(chroma_synced[4,:]),
+#     'avg_note_weight_5':np.mean(chroma_synced[5,:]),
+#     'avg_note_weight_6':np.mean(chroma_synced[6,:]),
+#     'avg_note_weight_7':np.mean(chroma_synced[7,:]),
+#     'avg_note_weight_8':np.mean(chroma_synced[8,:]),
+#     'avg_note_weight_9':np.mean(chroma_synced[9,:]),
+#     'avg_note_weight_t':np.mean(chroma_synced[10,:]),
+#     'avg_note_weight_e':np.mean(chroma_synced[11,:])
+# })
+# #std note weight
+# features_dict.update({
+#     'std_note_weight_0':np.std(chroma_synced[0,:]),
+#     'std_note_weight_1':np.std(chroma_synced[1,:]),
+#     'std_note_weight_2':np.std(chroma_synced[2,:]),
+#     'std_note_weight_3':np.std(chroma_synced[3,:]),
+#     'std_note_weight_4':np.std(chroma_synced[4,:]),
+#     'std_note_weight_5':np.std(chroma_synced[5,:]),
+#     'std_note_weight_6':np.std(chroma_synced[6,:]),
+#     'std_note_weight_7':np.std(chroma_synced[7,:]),
+#     'std_note_weight_8':np.std(chroma_synced[8,:]),
+#     'std_note_weight_9':np.std(chroma_synced[9,:]),
+#     'std_note_weight_t':np.std(chroma_synced[10,:]),
+#     'std_note_weight_e':np.std(chroma_synced[11,:])
+# })
 
-# get whole-track features
-get_spectral_features(features_dict, 't_', y, sr, n_fft, hop_length)
-# get percussive/harmonic features
-get_spectral_features(features_dict, 'p_', p_y, sr, n_fft, hop_length)
-get_spectral_features(features_dict, 'h_', h_y, sr, n_fft, hop_length)
-# --------------chromatic/tonal features--------------
-# compute beat-synched chromagram
-chroma = lb.feature.chroma_cqt(y=y, sr=sr)
-fixed_beat = lb.util.fix_frames(beat, x_max=chroma.shape[1])
-chroma_synced = lb.util.sync(chroma, fixed_beat, aggregate=np.median)
-chroma_synced_t = lb.frames_to_time(fixed_beat, sr=sr)
-# compute average note weight
-# notes are labelled using the duodecimal convention t=10, e=11
-features_dict.update({
-    'avg_note_weight_0':np.mean(chroma_synced[0,:]),
-    'avg_note_weight_1':np.mean(chroma_synced[1,:]),
-    'avg_note_weight_2':np.mean(chroma_synced[2,:]),
-    'avg_note_weight_3':np.mean(chroma_synced[3,:]),
-    'avg_note_weight_4':np.mean(chroma_synced[4,:]),
-    'avg_note_weight_5':np.mean(chroma_synced[5,:]),
-    'avg_note_weight_6':np.mean(chroma_synced[6,:]),
-    'avg_note_weight_7':np.mean(chroma_synced[7,:]),
-    'avg_note_weight_8':np.mean(chroma_synced[8,:]),
-    'avg_note_weight_9':np.mean(chroma_synced[9,:]),
-    'avg_note_weight_t':np.mean(chroma_synced[10,:]),
-    'avg_note_weight_e':np.mean(chroma_synced[11,:])
-})
-#std note weight
-features_dict.update({
-    'std_note_weight_0':np.std(chroma_synced[0,:]),
-    'std_note_weight_1':np.std(chroma_synced[1,:]),
-    'std_note_weight_2':np.std(chroma_synced[2,:]),
-    'std_note_weight_3':np.std(chroma_synced[3,:]),
-    'std_note_weight_4':np.std(chroma_synced[4,:])
-    'std_note_weight_5':np.std(chroma_synced[5,:]),
-    'std_note_weight_6':np.std(chroma_synced[6,:]),
-    'std_note_weight_7':np.std(chroma_synced[7,:]),
-    'std_note_weight_8':np.std(chroma_synced[8,:]),
-    'std_note_weight_9':np.std(chroma_synced[9,:]),
-    'std_note_weight_t':np.std(chroma_synced[10,:]),
-    'std_note_weight_e':np.std(chroma_synced[11,:])
-})
 
 # Tonnetz
 tonnetz=lb.feature.tonnetz(y=y, sr=sr)
@@ -108,3 +109,5 @@ tonnetz=lb.feature.tonnetz(y=y, sr=sr)
             'avg_tonnetz_'+dim:np.mean(tonnetz[dim,:]),
             'std_tonnetz_'+dim:np.std(tonnetz[dim,:])
             })
+# Polyfeat
+polyfeat = lb.feature.poly_features(y=y, sr=sr)
