@@ -14,7 +14,7 @@ from pytube import YouTube
 """
 A function to scrape audio from youtube videos given a set of queries passed as
 a string of terms separated by '+' or ' '. Scrapes page by page, (20 videos per
-page).
+page). Creates new directory in CWD to store audio files.
 """
 def ScrapeAudio(query, num_pages=1):
 
