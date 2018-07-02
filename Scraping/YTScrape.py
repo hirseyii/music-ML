@@ -26,7 +26,7 @@ def ScrapeAudio(query, num_pages=1, save_path=None):
         raise ValueError('ScrapeAudio(query, num_pages=1) : Invalid argument - query should be a string with terms separated by \'+\'')
 
     if ' ' in query:
-        query.replace(' ', '+')
+        query = query.replace(' ', '+')
 
     # save_path is an optional argument which can be auto generated if left blank
     if save_path is None:
