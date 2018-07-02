@@ -8,6 +8,7 @@ Jun 18
 from bs4 import BeautifulSoup as bs
 import requests
 import os
+import time
 from pytube import YouTube
 
 
@@ -51,6 +52,9 @@ def ScrapeAudio(query, num_pages=1, save_path=None):
     else:
         os.makedirs(save_path)
 
+    # get scrape start time
+    scrape_start_t = time.time()
+    # loop over pages
     for page_counter in range(num_pages):
         # TOS "wait" here?
         r = requests.get(base)
@@ -68,15 +72,21 @@ def ScrapeAudio(query, num_pages=1, save_path=None):
             tmp = 'https://www.youtube.com' + v['href']
             videolist.append(tmp)
         print('There are ',len(videolist),' videos returned for page '+str(page_counter+1))
-
+        # loop over video (YT) objects in each page
         for item in videolist:
             try:
+
                 # increment counter
                 count+=1
                 # initialise Youtube object
                 yt = YouTube(item)
                 # filter streams for audio only
+                TESTINGFILTER = yt.streams.filter(progressive=True,file_extension='mp4',resolution='360p')
+                """
                 audio_stream = yt.streams.get_by_itag(140) # Watch for changes https://github.com/nficano/pytube/issues/280
+                """
+                audio_stream=TESTINGFILTER.first()
+
                 # download audio from stream
                 audio_stream.download(save_path)
 
@@ -92,8 +102,10 @@ def ScrapeAudio(query, num_pages=1, save_path=None):
         # get the url of the next page:
         base = 'https://www.youtube.com' + nextbutton['href']
 
-        # What about TOS? Do we need a "wait" here?
 
+        # What about TOS? Do we need a "wait" here?
+    scrape_end_t = time.time()
+    print("total time: {0} seconds".format(scrape_end_t-scrape_start_t))
 
 # Main function
 if __name__ == '__main__':
