@@ -16,7 +16,7 @@ A function to scrape audio from youtube videos given a set of queries passed as
 a string of terms separated by '+' or ' '. Scrapes page by page, (20 videos per
 page). Creates new directory in CWD to store audio files.
 """
-def ScrapeAudio(query, num_pages=1):
+def ScrapeAudio(query, num_pages=1, save_path=None):
 
     # check args
     if type(num_pages) is not int or num_pages <= 0:
@@ -28,6 +28,11 @@ def ScrapeAudio(query, num_pages=1):
     if ' ' in query:
         query.replace(' ', '+')
 
+    # save_path is an optional argument which can be auto generated if left blank
+    if save_path is None:
+            save_path = os.getcwd()+'\\SCRAPES_'+query.replace('+', '_')
+
+
     # Initialise counters
     page_counter = 0
     count = 0
@@ -36,12 +41,12 @@ def ScrapeAudio(query, num_pages=1):
 
     # For saving to file we need to make a directory if it doesn't exist already
     # and check the file is empty etc.
-    save_path = os.getcwd()+'\\SCRAPES_'+query.replace('+', '_')
     # if the path exists check it's empty
     if os.path.isdir(save_path):
         if os.listdir(save_path) == []:
             pass
         else:
+            # if directory is not empty throw ENOTEMPTY exception
             raise OSError(39, "Directory is not empty.", save_path)
     else:
         os.makedirs(save_path)
