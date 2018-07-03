@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup as bs
 import requests
 import os
 import time
+import datetime
 from pytube import YouTube
 
 
@@ -16,18 +17,30 @@ A function to grab the upload date of a youtube video from HTML. The age of the
 video is calculated (in yrs?) and compared to the max upload age. Returns True
 if the upload age is less than or equal to the max upload age, returns false otherwise.
 """
-def CompareUploadDate(vid_url, max_upload_age):
+def IsYounger(vid_url, max_upload_age):
     #
-    if max_upload_age is not int or max_video_age < 1:
-        raise ValueError('CompareUploadDate() : Invalid argument - max_video_age should be a positive integer')
+    if type(max_upload_age) != int or max_upload_age < 1:
+        raise ValueError('CompareUploadDate() : Invalid argument - max_upload_age should be a positive integer')
     try:
         watch_page = requests.get(vid_url).text
     except Exception as e:
         print("CompareUploadDate() : request failed ",e)
+        exit(1)
 
     soup = bs(watch_page, 'html.parser')
-    date_element = soup.findAll(class_="date style-scope ytd-video-secondary-info-renderer")
+    date_element = soup.findAll(class_="watch-time-text")
+    date_text = date_element[0].text
+    # grab year only
+    upload_year = int(date_text.split()[-1])
+    current_year = datetime.datetime.now().year
+    # calculate video age
+    upload_age = current_year - upload_year
 
+    # return values
+    if upload_age <= max_upload_age:
+        return True
+    else:
+        return False
 
 
 """
@@ -49,7 +62,7 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None):
     # save_path is optional and can be auto generated if left blank
     if save_path is None:
             save_path = os.getcwd()+'/SCRAPES_'+query.replace('+', '_')
-    # max_video_age is optional, None=no filter on upload date.
+    # max_upload_age is optional, None=no filter on upload date.
     if max_upload_age is not int or max_upload_age < 1:
         raise ValueError('ScrapeAudio() : Invalid argument - max_video_age should be a positive integer')
 
@@ -75,4 +88,4 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None):
 
 
 if __name__ == '__main__':
-    print(CompareUploadDate("https://www.youtube.com/watch?v=s03I6DEjgbc", 5))
+    print(IsYounger("https://www.youtube.com/watch?v=s03I6DEjgbc", 5))
