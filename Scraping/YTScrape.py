@@ -31,7 +31,7 @@ def ScrapeAudio(query, num_pages=1, save_path=None):
 
     # save_path is an optional argument which can be auto generated if left blank
     if save_path is None:
-            save_path = os.getcwd()+'\\SCRAPES_'+query.replace('+', '_')
+            save_path = os.getcwd()+'/SCRAPES_'+query.replace('+', '_')
 
 
     # Initialise counters
@@ -56,7 +56,6 @@ def ScrapeAudio(query, num_pages=1, save_path=None):
     scrape_start_t = time.time()
     # loop over pages
     for page_counter in range(num_pages):
-        # TOS "wait" here?
         r = requests.get(base)
         # Parse search page
         page = r.text
@@ -73,22 +72,23 @@ def ScrapeAudio(query, num_pages=1, save_path=None):
             videolist.append(tmp)
         print('There are ',len(videolist),' videos returned for page '+str(page_counter+1))
         # loop over video (YT) objects in each page
-        for item in videolist:
+        for video_url in videolist:
             try:
-
                 # increment counter
                 count+=1
                 # initialise Youtube object
-                yt = YouTube(item)
+                yt = YouTube(video_url)
                 # filter streams for audio only
-                TESTINGFILTER = yt.streams.filter(progressive=True,file_extension='mp4',resolution='360p')
+                audio_stream = yt.streams.filter(progressive=True,file_extension='mp4',resolution='360p').first()
                 """
                 audio_stream = yt.streams.get_by_itag(140) # Watch for changes https://github.com/nficano/pytube/issues/280
                 """
-                audio_stream=TESTINGFILTER.first()
-
                 # download audio from stream
-                audio_stream.download(save_path)
+                # check whether title already exists
+                if os.path.isfile(save_path+'/'+audio_stream.default_filename):
+                    audio_stream.download(save_path, filename=yt.title+' ('+str(count)+')')
+                else:
+                    audio_stream.download(save_path)
 
                 print('Downloaded video '+str(count))
             except Exception as e:
@@ -110,4 +110,4 @@ def ScrapeAudio(query, num_pages=1, save_path=None):
 # Main function
 if __name__ == '__main__':
 
-    ScrapeAudio('nissan advert', 1)
+    ScrapeAudio('strongbow advert', 2)
