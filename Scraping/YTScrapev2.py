@@ -19,10 +19,10 @@ if the upload age is less than or equal to the max upload age, returns false oth
 """
 def IsYounger(vid_url, max_upload_age):
     #
-    if type(max_upload_age) != int or max_upload_age < 1:
-        raise ValueError("IsYounger() : Invalid argument - max_upload_age should be a positive integer")
-    elif max_upload_age == None:
+    if max_upload_age == None:
         return True
+    elif type(max_upload_age) != int or max_upload_age < 1:
+        raise ValueError("IsYounger() : Invalid argument - max_upload_age should be a positive integer")
     try:
         watch_page = requests.get(vid_url).text
     except Exception as e:
@@ -65,7 +65,9 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None):
     if save_path is None:
             save_path = os.getcwd()+'/SCRAPES_'+query.replace('+', '_')
     # max_upload_age is optional, None=no filter on upload date.
-    if type(max_upload_age) is not int or max_upload_age < 1:
+    if max_upload_age == None:
+        pass
+    elif type(max_upload_age) is not int or max_upload_age < 1:
         raise ValueError("ScrapeAudio() : Invalid argument - max_upload_age should be a positive integer")
 
     # declare counters
@@ -102,7 +104,6 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None):
         # create a list of relevant URLS
         videolist = []
         for v in vids:
-            parsed_count += 1
             # parse href attribute for 'http' regex to skip google adverts
             if (v['href'][0:4] == 'http'):
                 continue
@@ -111,6 +112,7 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None):
         print("There are ",len(videolist)," videos returned for page "+str(page_counter+1))
         # loop over video (YT) objects in each page
         for video_url in videolist:
+            parsed_count += 1
             try:
                 # initialise youtube object
                 yt = YouTube(video_url)
@@ -149,4 +151,4 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None):
 
 
 if __name__ == '__main__':
-    ScrapeAudio('strongbow advert', 40, max_upload_age=5)
+    ScrapeAudio('strongbow advert', 40)
