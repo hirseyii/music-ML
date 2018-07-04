@@ -87,7 +87,7 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None):
         else:
             # if directory is not empty ask for confimration
             valid_response = False
-            while !valid_response:
+            while not valid_response:
                 response = input("The directory : {0} is not empty. Are you sure you wish to proceed? Y/N")
                 if response.lower() == 'y':
                     valid_response = True
