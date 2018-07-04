@@ -20,15 +20,17 @@ if the upload age is less than or equal to the max upload age, returns false oth
 def IsYounger(vid_url, max_upload_age):
     #
     if type(max_upload_age) != int or max_upload_age < 1:
-        raise ValueError('CompareUploadDate() : Invalid argument - max_upload_age should be a positive integer')
+        raise ValueError("IsYounger() : Invalid argument - max_upload_age should be a positive integer")
+    elif max_upload_age == None:
+        return True
     try:
         watch_page = requests.get(vid_url).text
     except Exception as e:
-        print("CompareUploadDate() : request failed ",e)
+        print("IsYounger() : request failed ",e)
         exit(1)
 
     soup = bs(watch_page, 'html.parser')
-    date_element = soup.findAll(class_="watch-time-text")
+    date_element = soup.findAll(class_='watch-time-text')
     date_text = date_element[0].text
     # grab year only
     upload_year = int(date_text.split()[-1])
@@ -51,11 +53,11 @@ upload age in years.
 """
 def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None):
     # Check arguments
-    if type(num_videos) is not int or num_pages <= 0:
-        raise ValueError('ScrapeAudio() : Invalid argument - num_videos should be a positive integer')
+    if type(num_videos) is not int or num_videos <= 0:
+        raise ValueError("ScrapeAudio() : Invalid argument - num_videos should be a positive integer")
 
     if type(query) is not str:
-        raise ValueError('ScrapeAudio() : Invalid argument - query should be a string with terms separated by \'+\'')
+        raise ValueError("ScrapeAudio() : Invalid argument - query should be a string with terms separated by \'+\'")
     if ' ' in query:
         query = query.replace(' ', '+')
 
@@ -63,10 +65,13 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None):
     if save_path is None:
             save_path = os.getcwd()+'/SCRAPES_'+query.replace('+', '_')
     # max_upload_age is optional, None=no filter on upload date.
-    if max_upload_age is not int or max_upload_age < 1:
-        raise ValueError('ScrapeAudio() : Invalid argument - max_video_age should be a positive integer')
+    if type(max_upload_age) is not int or max_upload_age < 1:
+        raise ValueError("ScrapeAudio() : Invalid argument - max_upload_age should be a positive integer")
 
     # declare counters
+    download_count = 0
+    parsed_count = 0
+    page_counter = 0
 
     # base
     base = "https://www.youtube.com/results?search_query="+query
@@ -86,6 +91,62 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None):
     # get scrape start time
     scrape_start_t = time.time()
 
+    # Loop is broken when download_count = num_videos
+    while True:
+        # grab page and parse html
+        r = requests.get(base)
+        page=r.text
+        soup = bs(page,'html.parser')
+        # grab video links from thumbnail links
+        vids = soup.findAll('a', attrs={'class':'yt-uix-tile-link'})
+        # create a list of relevant URLS
+        videolist = []
+        for v in vids:
+            parsed_count += 1
+            # parse href attribute for 'http' regex to skip google adverts
+            if (v['href'][0:4] == 'http'):
+                continue
+            tmp = 'https://www.youtube.com' + v['href']
+            videolist.append(tmp)
+        print("There are ",len(videolist)," videos returned for page "+str(page_counter+1))
+        # loop over video (YT) objects in each page
+        for video_url in videolist:
+            try:
+                # initialise youtube object
+                yt = YouTube(video_url)
+                # check video upload age
+                if IsYounger(video_url, max_upload_age):
+                    # filter AV stream
+                    stream = yt.streams.filter(progressive=True,file_extension='mp4',resolution='360p').first()
+                    # download audio from stream
+                    # check whether title already exists
+                    if os.path.isfile(save_path+'/'+stream.default_filename):
+                        stream.download(save_path, filename=yt.title+' ('+str(download_count+1)+')')
+                    else:
+                        stream.download(save_path)
+                    # Increment counter
+                    download_count += 1
+                    print('Downloaded video '+str(download_count))
+
+                    # Check if download_count = num_videos
+                    if download_count == num_videos:
+                        scrape_end_t = time.time()
+                        print("{0} of {1} videos downloaded.\n".format(download_count, parsed_count))
+                        print("total time: {0} seconds".format(scrape_end_t-scrape_start_t))
+                        return
+            except Exception as e:
+                print("Error: ",e,"\n","download_count: ",download_count)
+                continue
+
+        # Next page
+        # find the navigation buttons in the page html:
+        buttons = soup.findAll('a',attrs={'class':"yt-uix-button vve-check yt-uix-sessionlink yt-uix-button-default yt-uix-button-size-default"})
+        # the button for the next page is the last one in the list:
+        nextbutton = buttons[-1]
+        # get the url of the next page:
+        base = 'https://www.youtube.com' + nextbutton['href']
+        page_counter += 1
+
 
 if __name__ == '__main__':
-    print(IsYounger("https://www.youtube.com/watch?v=s03I6DEjgbc", 5))
+    ScrapeAudio('strongbow advert', 40, max_upload_age=5)
