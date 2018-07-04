@@ -85,8 +85,20 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None):
         if os.listdir(save_path) == []:
             pass
         else:
-            # if directory is not empty throw ENOTEMPTY exception
-            raise OSError(39, "Directory is not empty.", save_path)
+            # if directory is not empty ask for confimration
+            valid_response = False
+            while !valid_response:
+                response = input("The directory : {0} is not empty. Are you sure you wish to proceed? Y/N")
+                if response.lower() == 'y':
+                    valid_response = True
+                elif response.lower() == 'n':
+                    valid_response = True
+                    print("The program will now quit.")
+                    exit(1)
+                else:
+                    print("Invalid response, please try again.")
+                    valid_response = False
+
     else:
         os.makedirs(save_path)
 
@@ -151,4 +163,4 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None):
 
 
 if __name__ == '__main__':
-    ScrapeAudio('strongbow advert', 40)
+    ScrapeAudio('strongbow advert', 100, save_path='/raid/scratch/sen/adverts/alcohol/')
