@@ -1,4 +1,4 @@
-from Loading import load_songs
+from Loading.load_songs import *
 from sklearn import svm
 from sklearn.svm import SVC
 from sklearn.cluster import KMeans
@@ -20,6 +20,7 @@ import glob
 import matplotlib.cm as cm
 from textwrap import wrap
 import scipy.stats as stats
+
 
 #This python script will take pre-made python dictionaries with feature information about an artists songs, and do machine learning and data visualisation. When I load in songs and extract features in the other script, the data is stored in a nested dictinoary structure.
 
