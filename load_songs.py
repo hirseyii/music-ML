@@ -277,7 +277,7 @@ if __name__ == "__main__":
         #create song database, songdb:
         songname_tmp=[]
         songpath_tmp=[]
-        path='raid/scratch/sen/music_ML/sample/'
+        path='/raid/scratch/sen/music-ML/sample/'
         #path=sys.argv[1] #the only command line input is the path to the folder of music
         print(path)
         savefile=str(path)+'_data' #it's saved with the same folder name but with _data.pkl on the end.
