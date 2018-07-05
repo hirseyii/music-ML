@@ -1,4 +1,4 @@
-from ../Loading/load_songs import *
+from Loading import load_songs
 from sklearn import svm
 from sklearn.svm import SVC
 from sklearn.cluster import KMeans
