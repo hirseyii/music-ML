@@ -206,7 +206,7 @@ def get_features_mean(song,sr,hop_length,n_fft):
             features_dict.update({
             'avg_tonnetz_{0}'.format(dim):np.mean(tonnetz[dim,:]),
             'std_tonnetz_{0}'.format(dim):np.std(tonnetz[dim,:])
-            })        
+            })
 
         combine_features={**features_dict,**bands_dict}
         print('features extracted successfully')
@@ -277,7 +277,7 @@ if __name__ == "__main__":
         #create song database, songdb:
         songname_tmp=[]
         songpath_tmp=[]
-        path='./sample/'
+        path='raid/scratch/sen/music_ML/sample/'
         #path=sys.argv[1] #the only command line input is the path to the folder of music
         print(path)
         savefile=str(path)+'_data' #it's saved with the same folder name but with _data.pkl on the end.
