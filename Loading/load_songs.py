@@ -51,7 +51,7 @@ def get_features_mean(song,sr,hop_length,n_fft):
         stft_percussive=lb.core.stft(y_percussive, n_fft=n_fft, hop_length=hop_length)	#Compute power spectrogram.
         #stft_all=lb.core.stft(song, n_fft=n_fft, hop_length=hop_length)	#Compute power spectrogram.
 
-        """
+
         #=========Split by frequency bands and compute RMSE features============
         band_resolution=[5] #[5,25] Choose number of bands, do low and high resolution?
         bands_dict=OrderedDict()
@@ -78,7 +78,7 @@ def get_features_mean(song,sr,hop_length,n_fft):
                 bands_dict.update({'{0}band_std_h{1}'.format(no_bands,i):std_h,'{0}band_std_p{1}'.format(no_bands,i):std_p})
                 bands_dict.update({'{0}band_skew_h{1}'.format(no_bands,i):skew_h,'{0}band_skew_p{1}'.format(no_bands,i):skew_p})
                 bands_dict.update({'{0}band_kurtosis_h{1}'.format(no_bands,i):kurtosis_h,'{0}band_kurtosis_p{1}'.format(no_bands,i):kurtosis_p})
-                """
+
         #stft=lb.feature.chroma_stft(song, sr, n_fft=n_fft, hop_length=hop_length)	#Compute a chromagram from a waveform or power spectrogram.
         #stft_a=np.mean(stft[0])
         #stft_std=np.std(stft[0])
@@ -115,14 +115,10 @@ def get_features_mean(song,sr,hop_length,n_fft):
         contrast_std=np.std(contrast)
         # Get coefficients of fitting an nth-order polynomial to the columns of a spectrogram.
         polyfeat=lb.feature.poly_features(y_harmonic, sr, n_fft=n_fft, hop_length=hop_length)
-        polyfeat_a=np.mean(polyfeat[0])
-        polyfeat_std=np.std(polyfeat[0])
-        """
-        # Computes the tonal centroid features (tonnetz), following the method of [R17].
-        tonnetz=lb.feature.tonnetz(librosa.effects.harmonic(y_harmonic), sr)
-        tonnetz_a=np.mean(tonnetz)
-        tonnetz_std=np.std(tonnetz)
-        """
+        polyfeat_grad_a=np.mean(polyfeat[0])
+        polyfeat_grad_std=np.std(polyfeat[0])
+        polyfeat_const_a=np.mean(polyfeat[1])
+        polyfeat_const_std=np.std(polyfeat[1])
         # zero crossing rate
         zcr=lb.feature.zero_crossing_rate(song, sr, hop_length=hop_length)
         zcr_a=np.mean(zcr)
@@ -149,10 +145,12 @@ def get_features_mean(song,sr,hop_length,n_fft):
             'bw_a':bw_a,'bw_std':bw_std,
             'contrast_a':contrast_a,
             'contrast_std':contrast_std,
-            'polyfeat_a':polyfeat_a,
-            'polyfeat_std':polyfeat_std,
-           # 'tonnetz_a':tonnetz_a,
-           # 'tonnetz_std':tonnetz_std,
+            'polyfeat_grad_a':polyfeat_grad_a,
+            'polyfeat_grad_std':polyfeat_grad_std,
+            'polyfeat_grad_a':polyfeat_grad_a,
+            'polyfeat_grad_std':polyfeat_grad_std,
+            'polyfeat_const_a':polyfeat_const_a,
+            'polyfeat_const_std':polyfeat_const_std,
             'zcr_a':zcr_a,
             'zcr_std':zcr_std,
             'onset_a':onset_a,
