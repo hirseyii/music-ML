@@ -51,6 +51,7 @@ def get_features_mean(song,sr,hop_length,n_fft):
         stft_percussive=lb.core.stft(y_percussive, n_fft=n_fft, hop_length=hop_length)	#Compute power spectrogram.
         #stft_all=lb.core.stft(song, n_fft=n_fft, hop_length=hop_length)	#Compute power spectrogram.
 
+        """
         #=========Split by frequency bands and compute RMSE features============
         band_resolution=[5] #[5,25] Choose number of bands, do low and high resolution?
         bands_dict=OrderedDict()
@@ -59,6 +60,7 @@ def get_features_mean(song,sr,hop_length,n_fft):
             bands_int=bands.astype(int)
             bands_int_unique=list(unique_everseen(bands_int)) #removing double entries less than 100Hz, because logspace bunches up down there and we don't need doubles when rounding to the nearest 10 Hz.
             for i in range(0,len(bands_int_unique)-1):
+
                 _h=lb.feature.rmse(S=(splitF(bands_int_unique[i],bands_int_unique[i+1],stft_harmonic)))
                 _p=lb.feature.rmse(S=(splitF(bands_int_unique[i],bands_int_unique[i+1],stft_percussive)))
                 #Calculate statistics for harmoinc and percussive over the time series.
@@ -76,7 +78,7 @@ def get_features_mean(song,sr,hop_length,n_fft):
                 bands_dict.update({'{0}band_std_h{1}'.format(no_bands,i):std_h,'{0}band_std_p{1}'.format(no_bands,i):std_p})
                 bands_dict.update({'{0}band_skew_h{1}'.format(no_bands,i):skew_h,'{0}band_skew_p{1}'.format(no_bands,i):skew_p})
                 bands_dict.update({'{0}band_kurtosis_h{1}'.format(no_bands,i):kurtosis_h,'{0}band_kurtosis_p{1}'.format(no_bands,i):kurtosis_p})
-
+                """
         #stft=lb.feature.chroma_stft(song, sr, n_fft=n_fft, hop_length=hop_length)	#Compute a chromagram from a waveform or power spectrogram.
         #stft_a=np.mean(stft[0])
         #stft_std=np.std(stft[0])
@@ -208,7 +210,7 @@ def get_features_mean(song,sr,hop_length,n_fft):
             'std_tonnetz_{0}'.format(dim):np.std(tonnetz[dim,:])
             })
 
-        combine_features={**features_dict,**bands_dict}
+        combine_features={**features_dict,"""**bands_dict"""}
         print('features extracted successfully')
         return combine_features
 """
