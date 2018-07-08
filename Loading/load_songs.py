@@ -51,6 +51,7 @@ def get_features_mean(song,sr,hop_length,n_fft):
         stft_percussive=lb.core.stft(y_percussive, n_fft=n_fft, hop_length=hop_length)	#Compute power spectrogram.
         #stft_all=lb.core.stft(song, n_fft=n_fft, hop_length=hop_length)	#Compute power spectrogram.
 
+
         #=========Split by frequency bands and compute RMSE features============
         band_resolution=[5] #[5,25] Choose number of bands, do low and high resolution?
         bands_dict=OrderedDict()
@@ -59,6 +60,7 @@ def get_features_mean(song,sr,hop_length,n_fft):
             bands_int=bands.astype(int)
             bands_int_unique=list(unique_everseen(bands_int)) #removing double entries less than 100Hz, because logspace bunches up down there and we don't need doubles when rounding to the nearest 10 Hz.
             for i in range(0,len(bands_int_unique)-1):
+
                 _h=lb.feature.rmse(S=(splitF(bands_int_unique[i],bands_int_unique[i+1],stft_harmonic)))
                 _p=lb.feature.rmse(S=(splitF(bands_int_unique[i],bands_int_unique[i+1],stft_percussive)))
                 #Calculate statistics for harmoinc and percussive over the time series.
@@ -113,14 +115,10 @@ def get_features_mean(song,sr,hop_length,n_fft):
         contrast_std=np.std(contrast)
         # Get coefficients of fitting an nth-order polynomial to the columns of a spectrogram.
         polyfeat=lb.feature.poly_features(y_harmonic, sr, n_fft=n_fft, hop_length=hop_length)
-        polyfeat_a=np.mean(polyfeat[0])
-        polyfeat_std=np.std(polyfeat[0])
-        """
-        # Computes the tonal centroid features (tonnetz), following the method of [R17].
-        tonnetz=lb.feature.tonnetz(librosa.effects.harmonic(y_harmonic), sr)
-        tonnetz_a=np.mean(tonnetz)
-        tonnetz_std=np.std(tonnetz)
-        """
+        polyfeat_grad_a=np.mean(polyfeat[0])
+        polyfeat_grad_std=np.std(polyfeat[0])
+        polyfeat_const_a=np.mean(polyfeat[1])
+        polyfeat_const_std=np.std(polyfeat[1])
         # zero crossing rate
         zcr=lb.feature.zero_crossing_rate(song, sr, hop_length=hop_length)
         zcr_a=np.mean(zcr)
@@ -147,10 +145,12 @@ def get_features_mean(song,sr,hop_length,n_fft):
             'bw_a':bw_a,'bw_std':bw_std,
             'contrast_a':contrast_a,
             'contrast_std':contrast_std,
-            'polyfeat_a':polyfeat_a,
-            'polyfeat_std':polyfeat_std,
-           # 'tonnetz_a':tonnetz_a,
-           # 'tonnetz_std':tonnetz_std,
+            'polyfeat_grad_a':polyfeat_grad_a,
+            'polyfeat_grad_std':polyfeat_grad_std,
+            'polyfeat_grad_a':polyfeat_grad_a,
+            'polyfeat_grad_std':polyfeat_grad_std,
+            'polyfeat_const_a':polyfeat_const_a,
+            'polyfeat_const_std':polyfeat_const_std,
             'zcr_a':zcr_a,
             'zcr_std':zcr_std,
             'onset_a':onset_a,
@@ -206,9 +206,9 @@ def get_features_mean(song,sr,hop_length,n_fft):
             features_dict.update({
             'avg_tonnetz_{0}'.format(dim):np.mean(tonnetz[dim,:]),
             'std_tonnetz_{0}'.format(dim):np.std(tonnetz[dim,:])
-            })        
+            })
 
-        combine_features={**features_dict,**bands_dict}
+        combine_features={**features_dict, **bands_dict}
         print('features extracted successfully')
         return combine_features
 """
@@ -277,10 +277,12 @@ if __name__ == "__main__":
         #create song database, songdb:
         songname_tmp=[]
         songpath_tmp=[]
-        path='./sample/'
+        load_path_root='/raid/scratch/sen/'
+        load_filename=sys.argv[1]   # take command line arg for filename
+        path=load_path_root+load_filename+'/'
         #path=sys.argv[1] #the only command line input is the path to the folder of music
         print(path)
-        savefile=str(path)+'_data' #it's saved with the same folder name but with _data.pkl on the end.
+        savefile=load_path_root+load_filename+'_data' #it's saved with the same folder name but with _data.pkl on the end.
         #now load song data in
         for song in os.listdir(path):
             #print (song)
