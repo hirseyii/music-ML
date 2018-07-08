@@ -163,4 +163,4 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None):
 
 
 if __name__ == '__main__':
-    ScrapeAudio('strongbow advert', 100, save_path='/raid/scratch/sen/adverts/alcohol/')
+    ScrapeAudio('dior advert', 100, save_path='/raid/scratch/sen/adverts/perfume/')

@@ -144,7 +144,7 @@ if __name__ == '__main__':
     '''
 
     # Build a forest and compute the feature importances
-    n_estimators=1000 #number of trees?
+    n_estimators=2000 #number of trees?
     forest = RandomForestClassifier(n_estimators=n_estimators, random_state=2,class_weight='balanced')
     forest.fit(features_train, artists_train)
     artists_pred = forest.predict(features_test)
