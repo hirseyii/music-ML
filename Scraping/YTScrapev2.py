@@ -163,4 +163,25 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None):
 
 
 if __name__ == '__main__':
-    ScrapeAudio('chanel advert', 100, save_path='/raid/scratch/sen/adverts/perfume/')
+    ScrapeAudio('chanel advert', 100, save_path='/raid/scratch/sen/adverts/perfume/', max_upload_age=5)
+    ScrapeAudio('dior advert', 100, save_path='/raid/scratch/sen/adverts/perfume/', max_upload_age=5)
+    ScrapeAudio('gucci perfume advert', 100, save_path='/raid/scratch/sen/adverts/perfume/', max_upload_age=5)
+    ScrapeAudio('bvlgari perfume advert', 100, save_path='/raid/scratch/sen/adverts/perfume/', max_upload_age=5)
+    ScrapeAudio('hugo boss perfume advert', 100, save_path='/raid/scratch/sen/adverts/perfume/', max_upload_age=5)
+
+    ScrapeAudio('strongbow advert', 100, save_path='/raid/scratch/sen/adverts/alcohol/', max_upload_age=5)
+    ScrapeAudio('carling advert', 100, save_path='/raid/scratch/sen/adverts/alcohol/', max_upload_age=5)
+    ScrapeAudio('carlsberg advert', 100, save_path='/raid/scratch/sen/adverts/alcohol/', max_upload_age=5)
+    ScrapeAudio('fosters advert', 100, save_path='/raid/scratch/sen/adverts/alcohol/', max_upload_age=5)
+    ScrapeAudio('heineken advert', 100, save_path='/raid/scratch/sen/adverts/alcohol/', max_upload_age=5)
+
+    ScrapeAudio('nissan advert', 100, save_path='/raid/scratch/sen/adverts/cars/', max_upload_age=5)
+    ScrapeAudio('renault advert', 100, save_path='/raid/scratch/sen/adverts/cars/', max_upload_age=5)
+    ScrapeAudio('audi advert', 100, save_path='/raid/scratch/sen/adverts/cars/', max_upload_age=5)
+    ScrapeAudio('honda advert', 100, save_path='/raid/scratch/sen/adverts/cars/', max_upload_age=5)
+    ScrapeAudio('vw advert', 100, save_path='/raid/scratch/sen/adverts/cars/', max_upload_age=5)
+
+
+
+
+
