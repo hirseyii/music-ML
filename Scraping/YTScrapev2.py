@@ -88,7 +88,7 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None):
             # if directory is not empty ask for confimration
             valid_response = False
             while not valid_response:
-                response = input("The directory : {0} is not empty. Are you sure you wish to proceed? Y/N")
+                response = input("The directory : {0} is not empty. Are you sure you wish to proceed? Y/N\n".format(save_path))
                 if response.lower() == 'y':
                     valid_response = True
                 elif response.lower() == 'n':
@@ -163,4 +163,4 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None):
 
 
 if __name__ == '__main__':
-    ScrapeAudio('dior advert', 100, save_path='/raid/scratch/sen/adverts/perfume/')
+    ScrapeAudio('chanel advert', 100, save_path='/raid/scratch/sen/adverts/perfume/')
