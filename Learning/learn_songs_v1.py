@@ -9,7 +9,7 @@ from sklearn.feature_selection import SelectFromModel
 from sklearn.svm import LinearSVC
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score, roc_curve, auc
 from sklearn.metrics import classification_report
 from sklearn.metrics import log_loss
 import sklearn
@@ -75,12 +75,16 @@ def prepare_data(all_data_in):
 def probability_matrix(test_data, predicted_data, display=True):
     classes = np.unique(test_data)
     probability_matrix = np.zeros(shape=(len(classes), len(classes)))
+    # loop over each class
     for i in range(len(classes)):
+        # locate classes in test_data and match indices to predicted_data
         class_name = classes[i]
         indices = np.where(np.asarray(test_data) == class_name)
         class_probs = predicted_data[indices]
+        # average over all samples in each class and average the prediction percentage
         probability_matrix[:, i] = np.mean(class_probs, axis=0)
     if display:
+        # plot a confusion-matrix-like chart
         plt.imshow(probability_matrix,
                    interpolation='nearest', cmap=plt.cm.Blues)
         plt.colorbar()
@@ -101,6 +105,34 @@ def probability_matrix(test_data, predicted_data, display=True):
     return probability_matrix
 
 
+def plot_roc_curve(test_data, predicted_data):
+    classes = np.unique(test_data)
+    n_classes = len(classes)
+    # loop over classes
+    fpr = dict()
+    tpr = dict()
+
+
+    for i in range(n_classes):
+        class_name = classes[i]
+        # get false-positive and true-positive rates from roc_curve for the class
+        fpr[i], tpr[i], _ = roc_curve(test_data, predicted_data[:, i], pos_label=class_name)
+
+    # Compute macro-average ROC curve and ROC area
+
+    # First aggregate all false positive rates
+    all_fpr = np.unique(np.concatenate([fpr[i] for i in range(n_classes)]))
+    # Then interpolate all ROC curves at this points
+    mean_tpr = np.zeros_like(all_fpr)
+    for i in range(n_classes):
+            mean_tpr += interp(all_fpr, fpr[i], tpr[i])
+
+
+
+
+
+
+            
 # Here we go, let's try some machine learning algorithms
 
 if __name__ == '__main__':
@@ -255,8 +287,11 @@ if __name__ == '__main__':
     print('--' * 30)
     print('Log-loss = {0}'.format(log_loss(artists_test, artists_pred_proba)))
 
-    print(probability_matrix(artists_test, artists_pred_proba))
 
+    print(probability_matrix(artists_test, artists_pred_proba))
+    plot_roc_curve(artists_test, artists_pred_proba)
+    
+    
     # Now make plot of feature importances with standard deviations
     clf = pipeline.steps[1][1]  # get classifier used
     importances = pipeline.steps[1][1].feature_importances_
