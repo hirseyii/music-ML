@@ -67,14 +67,30 @@ def prepare_data(all_data_in):
 # being a member of each class according to the Random Forest.
 
 def probability_matrix(test_data, predicted_data, display=True):
-
-    probability_matrix = np.zeros(shape=(len(np.unique(test_data)), len(np.unique(test_data))))
-    for i in range(len(np.unique(test_data))):
-        class_name = np.unique(test_data)[i]
+    classes = np.unique(test_data)
+    probability_matrix = np.zeros(shape=(len(classes), len(classes)))
+    for i in range(len(classes)):
+        class_name = classes[i]
         indices = np.where(np.asarray(test_data) == class_name)
         class_probs = predicted_data[indices]
         probability_matrix[:, i] = np.mean(class_probs, axis=0)
-   # if display:
+    if display:
+        plt.imshow(probability_matrix, interpolation='nearest', cmap=plt.cm.Blues)
+        plt.colorbar()
+        tick_marks = np.arange(len(classes))
+        plt.xticks(tick_marks, classes, rotation=45)
+        plt.yticks(tick_marks, classes)
+        plt.title("Probability matrix")
+        fmt = '.2f'
+        thresh = probability_matrix.max() / 2.
+        for i, j in itertools.product(range(probability_matrix.shape[0]), range(probability_matrix.shape[1])):
+            plt.text(j, i, format(probability_matrix[i, j], fmt),
+                     horizontalalignment="center",
+                    color="white" if probability_matrix[i, j] > thresh else "black")
+        plt.tight_layout()
+        plt.ylabel('True label')
+        plt.xlabel('Predicted label')
+
     return probability_matrix
 
 
@@ -226,7 +242,7 @@ if __name__ == '__main__':
     print('--'*30)
     print('Log-loss = {0}'.format(log_loss(artists_test, artists_pred_proba)))
 
-    probability_matrix(artists_test, artists_pred_proba)
+    print(probability_matrix(artists_test, artists_pred_proba))
        
 
 
