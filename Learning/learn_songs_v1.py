@@ -66,14 +66,16 @@ def prepare_data(all_data_in):
 # averaging over all samples in the class, the probabilities of the sample
 # being a member of each class according to the Random Forest.
 
-def probability_matrix(test_data, predicted_data):
-  
-    for class_name in np.unique(artists_test):
-        indices = np.where(np.asarray(artists_test) == class_name)
-        class_probs = artists_pred_proba[indices]
-        print(np.mean(class_probs, axis=0))
-         
-    
+def probability_matrix(test_data, predicted_data, display=True):
+
+    probability_matrix = np.zeros(shape=(len(np.unique(test_data)), len(np.unique(test_data))))
+    for i in range(len(np.unique(test_data))):
+        class_name = np.unique(test_data)[i]
+        indices = np.where(np.asarray(test_data) == class_name)
+        class_probs = predicted_data[indices]
+        probability_matrix[:, i] = np.mean(class_probs, axis=0)
+   # if display:
+    return probability_matrix
 
 
 #Here we go, let's try some machine learning algorithms
@@ -224,7 +226,7 @@ if __name__ == '__main__':
     print('--'*30)
     print('Log-loss = {0}'.format(log_loss(artists_test, artists_pred_proba)))
 
-        
+    probability_matrix(artists_test, artists_pred_proba)
        
 
 
