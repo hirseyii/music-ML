@@ -23,25 +23,28 @@ from textwrap import wrap
 import scipy.stats as stats
 
 
-#This python script will take pre-made python dictionaries with feature information about an artists songs, and do machine learning and data visualisation. When I load in songs and extract features in the other script, the data is stored in a nested dictinoary structure.
+# This python script will take pre-made python dictionaries with feature information about an artists songs, and do machine learning and data visualisation. When I load in songs and extract features in the other script, the data is stored in a nested dictinoary structure.
 
-#function to load in data from load_songs script.
+# function to load in data from load_songs script.
 def prepare_data(all_data_in):
-    all_features=[]
-    all_artists=[]
-    for artist in all_data_in: #As i did feature extraction on each artist seperately, loop through them. Create lists of song names and features
-        data=load_obj(artist.replace('.pkl',''))
+    all_features = []
+    all_artists = []
+    for artist in all_data_in:  # As i did feature extraction on each artist seperately, loop through them. Create lists of song names and features
+        data = load_obj(artist.replace('.pkl', ''))
         print('loading {0}'.format(artist))
-        songname=[] #will be a list of song names
-        songfeat=[] #will be a list of dictionaries containing the song feature data
-        artists=[] #will be a list of artists, as I load them artist at a time should be straightforward.
-        for song in data: #data is a dictionary, keys are song names
-            songfeat.append(data[song]) #data corresponding to each dictionary key is another dict with features and labels
+        songname = []  # will be a list of song names
+        songfeat = []  # will be a list of dictionaries containing the song feature data
+        # will be a list of artists, as I load them artist at a time should be straightforward.
+        artists = []
+        for song in data:  # data is a dictionary, keys are song names
+            # data corresponding to each dictionary key is another dict with features and labels
+            songfeat.append(data[song])
             songname.append(song)
-            artists.append(artist.replace('_data.pkl','').replace('all_','').replace(path,'').replace('_data_testsplit.pkl','').replace('_data_trainsplit.pkl',''))
+            artists.append(artist.replace('_data.pkl', '').replace('all_', '').replace(
+                path, '').replace('_data_testsplit.pkl', '').replace('_data_trainsplit.pkl', ''))
 
-        #if we want to modify the features, could do it here
-        #e.g. removing some features
+        # if we want to modify the features, could do it here
+        # e.g. removing some features
         '''
         print (len(songfeat[0]))
         for i in range(len(songfeat)):
@@ -50,21 +53,24 @@ def prepare_data(all_data_in):
 
         print (len(songfeat[0]))
         '''
-        feature_names=list(songfeat[0].keys()) #will be all our feature names
-        features=[] #will be all our raw feature data
+        feature_names = list(
+            songfeat[0].keys())  # will be all our feature names
+        features = []  # will be all our raw feature data
         for i in range(len(songfeat)):
-            features.append(list(songfeat[i].values())) #take the songfeat dictionary and grab only the values (keys are just text labels for each feature)
+            # take the songfeat dictionary and grab only the values (keys are just text labels for each feature)
+            features.append(list(songfeat[i].values()))
 
-        #create master lists of features and artists for the machine learning later
-        all_features+=features
-        all_artists+=artists
+        # create master lists of features and artists for the machine learning later
+        all_features += features
+        all_artists += artists
     return all_features, all_artists, feature_names
 
-#===============================================================
+# ===============================================================
 # We want to produce a chart showing the mean prediction probabilities
 # for each class. This function plots a confusion-matrix-like chart by
 # averaging over all samples in the class, the probabilities of the sample
 # being a member of each class according to the Random Forest.
+
 
 def probability_matrix(test_data, predicted_data, display=True):
     classes = np.unique(test_data)
@@ -75,7 +81,8 @@ def probability_matrix(test_data, predicted_data, display=True):
         class_probs = predicted_data[indices]
         probability_matrix[:, i] = np.mean(class_probs, axis=0)
     if display:
-        plt.imshow(probability_matrix, interpolation='nearest', cmap=plt.cm.Blues)
+        plt.imshow(probability_matrix,
+                   interpolation='nearest', cmap=plt.cm.Blues)
         plt.colorbar()
         tick_marks = np.arange(len(classes))
         plt.xticks(tick_marks, classes, rotation=45)
@@ -86,7 +93,7 @@ def probability_matrix(test_data, predicted_data, display=True):
         for i, j in itertools.product(range(probability_matrix.shape[0]), range(probability_matrix.shape[1])):
             plt.text(j, i, format(probability_matrix[i, j], fmt),
                      horizontalalignment="center",
-                    color="white" if probability_matrix[i, j] > thresh else "black")
+                     color="white" if probability_matrix[i, j] > thresh else "black")
         plt.tight_layout()
         plt.ylabel('True label')
         plt.xlabel('Predicted label')
@@ -94,59 +101,60 @@ def probability_matrix(test_data, predicted_data, display=True):
     return probability_matrix
 
 
-#Here we go, let's try some machine learning algorithms
+# Here we go, let's try some machine learning algorithms
 
 if __name__ == '__main__':
 
-    #load in all data saved from the feature extraction, *.pkl. Initiate figure and select colours
-    path=sys.argv[1] #command line input is path to data
-    all_data=glob.glob(path+'/*_data.pkl') #load in as many as you want
+    # load in all data saved from the feature extraction, *.pkl. Initiate figure and select colours
+    path = sys.argv[1]  # command line input is path to data
+    all_data = glob.glob(path + '/*_data.pkl')  # load in as many as you want
 
     colors = iter(cm.Set1(np.linspace(0, 1, len(all_data))))
     #colors = iter(cm.cubehelix(np.linspace(0, 1, len(all_data))))
 
     # load in artists with loads of songs - may or may not be splitting songs, try except:
-    all_features, all_artists, feature_names = prepare_data(all_data) #feature names is same for all runs when unpacked (saves loading in a .pkl again)
-    #Split our data into a training and testing data sets
-    train_percent=float(sys.argv[2])
+    # feature names is same for all runs when unpacked (saves loading in a .pkl again)
+    all_features, all_artists, feature_names = prepare_data(all_data)
+    # Split our data into a training and testing data sets
+    train_percent = float(sys.argv[2])
     # Test/train split as usual on artists with many songs
-    features_train, features_test, artists_train, artists_test = train_test_split(all_features, all_artists, train_size=train_percent, random_state=0, stratify=all_artists)
+    features_train, features_test, artists_train, artists_test = train_test_split(
+        all_features, all_artists, train_size=train_percent, random_state=0, stratify=all_artists)
 
-    #now data is prepared for machine learning
+    # now data is prepared for machine learning
     try:
-        if len(artists_test)==len(features_test) and len(artists_train)==len(features_train):
+        if len(artists_test) == len(features_test) and len(artists_train) == len(features_train):
             None
     except:
-        print('artists and features are not same length: {0} != {1}',format(artists_test,features_test,artists_train,features_train))
+        print('artists and features are not same length: {0} != {1}', format(
+            artists_test, features_test, artists_train, features_train))
         sys.exit()
 
-    feature_names_flatten=np.array(feature_names).flatten()
-    feature_names=np.transpose(feature_names)
-    #print(np.transpose(feature_names))
+    feature_names_flatten = np.array(feature_names).flatten()
+    feature_names = np.transpose(feature_names)
+    # print(np.transpose(feature_names))
     # set up data as numerical classes as well as labeled string classes - some classifiers require numbered labels, not artists as strings
     X_test = np.array(features_test)
     Y_test = np.array(artists_test)
-    le=preprocessing.LabelEncoder()
+    le = preprocessing.LabelEncoder()
     le.fit(Y_test)
-    Y_test_n=le.transform(Y_test)
+    Y_test_n = le.transform(Y_test)
 
     X_train = np.array(features_train)
     Y_train = np.array(artists_train)
-    le=preprocessing.LabelEncoder()
+    le = preprocessing.LabelEncoder()
     le.fit(Y_train)
-    Y_train_n=le.transform(Y_train)
+    Y_train_n = le.transform(Y_train)
 
-    names=np.unique(Y_test)
+    names = np.unique(Y_test)
     print(names)
     # Now try some classifiers!
-
-
 
     # Set up neutral network classifier
 
     from sklearn.preprocessing import StandardScaler
-    nn_features_train=X_train
-    nn_features_test=X_test
+    nn_features_train = X_train
+    nn_features_test = X_test
     scaler = StandardScaler()
     # normalise data and remove mean:
     scaler.fit(features_train)
@@ -154,15 +162,16 @@ if __name__ == '__main__':
     nn_features_test = scaler.transform(nn_features_test)
 
     from sklearn.neural_network import MLPClassifier
-    #not sure how many nodes to use? loop over some values until you're sure you've maxed the accuracy- 5000 is good for this:
-    for i in range(5000,5001,1000):
-        nn=MLPClassifier(hidden_layer_sizes=(i, ),solver='adam',max_iter=2000)
+    # not sure how many nodes to use? loop over some values until you're sure you've maxed the accuracy- 5000 is good for this:
+    for i in range(5000, 5001, 1000):
+        nn = MLPClassifier(hidden_layer_sizes=(
+            i, ), solver='adam', max_iter=2000)
         nn.fit(nn_features_train, artists_train)
-        nn_pred=nn.predict(nn_features_test)
-        print('--'*30)
+        nn_pred = nn.predict(nn_features_test)
+        print('--' * 30)
         print('MLP nn classifier with {0} hidden layers'.format(i))
-        print(classification_report(artists_test, nn_pred,target_names=names))
-        print('--'*30)
+        print(classification_report(artists_test, nn_pred, target_names=names))
+        print('--' * 30)
 
     '''
     #we could try SVC; it's quite poor compared to random forests.
@@ -176,19 +185,21 @@ if __name__ == '__main__':
     '''
 
     # Build a forest and compute the feature importances
-    n_estimators=2000 #number of trees?
-    forest = RandomForestClassifier(n_estimators=n_estimators, random_state=2,class_weight='balanced')
+    n_estimators = 2000  # number of trees?
+    forest = RandomForestClassifier(
+        n_estimators=n_estimators, random_state=2, class_weight='balanced')
     forest.fit(features_train, artists_train)
     artists_pred = forest.predict(features_test)
-    accuracy_before=(accuracy_score(artists_test, artists_pred)) #we'll print this later as a comparison
+    # we'll print this later as a comparison
+    accuracy_before = (accuracy_score(artists_test, artists_pred))
 
-    #Could check classification report here but we'll do this later after feature pruning
-    #print('--'*30)
+    # Could check classification report here but we'll do this later after feature pruning
+    # print('--'*30)
     #print('Random Forest report before feature pruning:')
     #print(classification_report(artists_test, forest.predict(features_test),target_names=names))
-    #print('--'*30)
+    # print('--'*30)
 
-    #you could loop over trees to find out how many before you accuracy maxes output
+    # you could loop over trees to find out how many before you accuracy maxes output
     '''
     #how many trees are required? loop through values to find out
     scores=[]
@@ -212,42 +223,42 @@ if __name__ == '__main__':
     plt.show()
     '''
 
-
     ######################################################
     # Now lets repeat using a more streamlined pipeline to first remove unimportant features, then run a classifier on remaining ones.
-    #we may want to try different classifiers and feature selection processes
-    #an important note is that the pipeline automatically creates new feature data after removing pruned features.
+    # we may want to try different classifiers and feature selection processes
+    # an important note is that the pipeline automatically creates new feature data after removing pruned features.
 
-    #first choose a model to prune features, then put it in pipeline - there are many we could try
-    lsvc = LinearSVC(C=0.01, penalty="l1", dual=False).fit(features_train, artists_train)
-    rfc=RandomForestClassifier(n_estimators=n_estimators,random_state=2)
-    modelselect='rfc' #set accordingly
+    # first choose a model to prune features, then put it in pipeline - there are many we could try
+    lsvc = LinearSVC(C=0.01, penalty="l1", dual=False).fit(
+        features_train, artists_train)
+    rfc = RandomForestClassifier(n_estimators=n_estimators, random_state=2)
+    modelselect = 'rfc'  # set accordingly
     pipeline = Pipeline([
         ('feature_selection', SelectFromModel(rfc)),
-        ('classification', RandomForestClassifier(n_estimators=n_estimators,random_state=2,class_weight='balanced'))
+        ('classification', RandomForestClassifier(
+            n_estimators=n_estimators, random_state=2, class_weight='balanced'))
     ])
-    #do the fit and feature selection
+    # do the fit and feature selection
     pipeline.fit(features_train, artists_train)
     # check accuracy and other metrics:
     artists_important_pred = pipeline.predict(features_test)
     artists_pred_proba = pipeline.predict_proba(features_test)
-    accuracy_after=(accuracy_score(artists_test, artists_important_pred))
+    accuracy_after = (accuracy_score(artists_test, artists_important_pred))
 
     print('accuracy before pruning features: {0:.2f}'.format(accuracy_before))
     print('accuracy after pruning features: {0:.2f}'.format(accuracy_after))
     print('We should check other metrics for a full picture of this model:')
-    print('--'*30)
+    print('--' * 30)
     print('Random Forest report after feature pruning:')
-    print(classification_report(artists_test, artists_important_pred,target_names=names))
-    print('--'*30)
+    print(classification_report(artists_test,
+                                artists_important_pred, target_names=names))
+    print('--' * 30)
     print('Log-loss = {0}'.format(log_loss(artists_test, artists_pred_proba)))
 
     print(probability_matrix(artists_test, artists_pred_proba))
-       
 
-
-    #Now make plot of feature importances with standard deviations
-    clf=pipeline.steps[1][1] #get classifier used
+    # Now make plot of feature importances with standard deviations
+    clf = pipeline.steps[1][1]  # get classifier used
     importances = pipeline.steps[1][1].feature_importances_
     std = np.std([tree.feature_importances_ for tree in clf.estimators_],
                  axis=0)
@@ -255,29 +266,33 @@ if __name__ == '__main__':
     # Now we've pruned bad features, create new feature_names_importanceorder_pruned array
     # Print the feature ranking if you want, but graph is nicer
     #print("Feature ranking:")
-    feature_names_importanceorder_pruned=[]
+    feature_names_importanceorder_pruned = []
     for f in range(len(indices)):
         #print("%d. feature %d (%f) {0}" % (f + 1, indices[f], importances[indices[f]]), feature_names[indices[f]])
-        feature_names_importanceorder_pruned.append(str(feature_names[indices[f]]))
+        feature_names_importanceorder_pruned.append(
+            str(feature_names[indices[f]]))
     # Plot the feature importances of the forest
     plt.figure()
     try:
-        plt.title("\n".join(wrap("Feature importances pruned with {0}. n_est={1}. Trained on {2}% of data. Accuracy before={3:.3f}, accuracy after={4:.3f}".format(modelselect,n_estimators,train_percent*100,accuracy_before,accuracy_after,40))))
-    except: #having issues with a fancy title?
+        plt.title("\n".join(wrap("Feature importances pruned with {0}. n_est={1}. Trained on {2}% of data. Accuracy before={3:.3f}, accuracy after={4:.3f}".format(
+            modelselect, n_estimators, train_percent * 100, accuracy_before, accuracy_after, 40))))
+    except:  # having issues with a fancy title?
         plt.title('After pruning features:')
     plt.bar(range(len(indices)), importances[indices],
-           color="r", yerr=std[indices], align="center")
+            color="r", yerr=std[indices], align="center")
     plt.xticks(range(len(indices)), indices)
     plt.xlim([-1, len(indices)])
-    plt.xticks(range(len(indices)), feature_names_importanceorder_pruned, rotation='vertical')
+    plt.xticks(range(len(indices)),
+               feature_names_importanceorder_pruned, rotation='vertical')
     plt.tight_layout()
     plt.show()
 
     # see which features were removed
-    no_features=len(feature_names_importanceorder_pruned)
-    print('Started with {0} features, now using {1}'.format(len(feature_names), no_features))
+    no_features = len(feature_names_importanceorder_pruned)
+    print('Started with {0} features, now using {1}'.format(
+        len(feature_names), no_features))
     print('features used were:')
-    print( set(feature_names_flatten)-set(feature_names_importanceorder_pruned) )
+    print(set(feature_names_flatten) - set(feature_names_importanceorder_pruned))
 
     # plot confusion matrix - code adapted from sklearn manual page
     def plot_confusion_matrix(cm, classes,
@@ -293,7 +308,7 @@ if __name__ == '__main__':
             print("Showing normalized confusion matrix")
         else:
             print('Showing confusion matrix, without normalization')
-        #print(cm)
+        # print(cm)
         plt.imshow(cm, interpolation='nearest', cmap=cmap)
         plt.title(title)
         plt.colorbar()
@@ -318,8 +333,8 @@ if __name__ == '__main__':
     plot_confusion_matrix(cnf_matrix, classes=names,
                           title='Confusion matrix, without normalization')
     # Plot normalized confusion matrix
-    #plt.figure()
-    #plot_confusion_matrix(cnf_matrix, classes=names, normalize=True,
+    # plt.figure()
+    # plot_confusion_matrix(cnf_matrix, classes=names, normalize=True,
     #                      title='Normalized confusion matrix')
 
     plt.show()
