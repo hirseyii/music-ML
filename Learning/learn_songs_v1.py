@@ -11,6 +11,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import classification_report
+from sklearn.metrics import log_loss
 import sklearn
 from sklearn.model_selection import cross_validate
 from sklearn import preprocessing
@@ -59,7 +60,20 @@ def prepare_data(all_data_in):
         all_artists+=artists
     return all_features, all_artists, feature_names
 
+#===============================================================
+# We want to produce a chart showing the mean prediction probabilities
+# for each class. This function plots a confusion-matrix-like chart by
+# averaging over all samples in the class, the probabilities of the sample
+# being a member of each class according to the Random Forest.
 
+def probability_matrix(test_data, predicted_data):
+  
+    for class_name in np.unique(artists_test):
+        indices = np.where(np.asarray(artists_test) == class_name)
+        class_probs = artists_pred_proba[indices]
+        print(np.mean(class_probs, axis=0))
+         
+    
 
 
 #Here we go, let's try some machine learning algorithms
@@ -198,6 +212,7 @@ if __name__ == '__main__':
     pipeline.fit(features_train, artists_train)
     # check accuracy and other metrics:
     artists_important_pred = pipeline.predict(features_test)
+    artists_pred_proba = pipeline.predict_proba(features_test)
     accuracy_after=(accuracy_score(artists_test, artists_important_pred))
 
     print('accuracy before pruning features: {0:.2f}'.format(accuracy_before))
@@ -207,8 +222,10 @@ if __name__ == '__main__':
     print('Random Forest report after feature pruning:')
     print(classification_report(artists_test, artists_important_pred,target_names=names))
     print('--'*30)
+    print('Log-loss = {0}'.format(log_loss(artists_test, artists_pred_proba)))
 
-
+        
+       
 
 
     #Now make plot of feature importances with standard deviations
@@ -246,7 +263,7 @@ if __name__ == '__main__':
 
     # plot confusion matrix - code adapted from sklearn manual page
     def plot_confusion_matrix(cm, classes,
-                              normalize=False,
+                              normalize=True,
                               title='Confusion matrix',
                               cmap=plt.cm.Blues):
         """
