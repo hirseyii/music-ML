@@ -45,13 +45,23 @@ def IsYounger(vid_url, max_upload_age):
         return False
 
 
+# Returns true if a video's runtime is shorter than the specified max_length (in seconds)
+def IsShorter(yt_object, max_length=0):
+    # grab length from the yt object.
+    if yt_object.length > max_length:
+        return False
+    elif max_length == None:
+        return True
+    else:
+        return True
+
 """
 A function to scrape audio from youtube videos given a set of queries passed as
 a string of terms separated by '+' or ' '. Scrapes page by page, (20 videos per
 page). Creates new directory in CWD to store audio files. Can filter by video
 upload age in years.
 """
-def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None):
+def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None, max_length=None):
     # Check arguments
     if type(num_videos) is not int or num_videos <= 0:
         raise ValueError("ScrapeAudio() : Invalid argument - num_videos should be a positive integer")
@@ -129,7 +139,7 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None):
                 # initialise youtube object
                 yt = YouTube(video_url)
                 # check video upload age
-                if IsYounger(video_url, max_upload_age):
+                if IsYounger(video_url, max_upload_age) and IsShorter(yt, max_duration):
                     # filter AV stream
                     stream = yt.streams.filter(progressive=True,file_extension='mp4',resolution='360p').first()
                     # download audio from stream
@@ -146,15 +156,15 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None):
                     if download_count == num_videos:
                         scrape_end_t = time.time()
                         print("{0} of {1} videos downloaded.\n".format(download_count, parsed_count))
-                        print("total time: {0} seconds".format(scrape_end_t-scrape_start_t))
+                        print("total time: {0} seconds".format(scrape_end_t - scrape_start_t))
                         return
             except Exception as e:
-                print("Error: ",e,"\n","download_count: ",download_count)
+                print("Error: ", e, "\n", "download_count: ", download_count)
                 continue
 
         # Next page
         # find the navigation buttons in the page html:
-        buttons = soup.findAll('a',attrs={'class':"yt-uix-button vve-check yt-uix-sessionlink yt-uix-button-default yt-uix-button-size-default"})
+        buttons = soup.findAll('a', attrs={'class': "yt-uix-button vve-check yt-uix-sessionlink yt-uix-button-default yt-uix-button-size-default"})
         # the button for the next page is the last one in the list:
         nextbutton = buttons[-1]
         # get the url of the next page:
