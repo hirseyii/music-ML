@@ -21,7 +21,7 @@ import glob
 import matplotlib.cm as cm
 from textwrap import wrap
 import scipy.stats as stats
-
+from scipy import interp
 
 # This python script will take pre-made python dictionaries with feature information about an artists songs, and do machine learning and data visualisation. When I load in songs and extract features in the other script, the data is stored in a nested dictinoary structure.
 
@@ -85,6 +85,7 @@ def probability_matrix(test_data, predicted_data, display=True):
         probability_matrix[:, i] = np.mean(class_probs, axis=0)
     if display:
         # plot a confusion-matrix-like chart
+        plt.figure()
         plt.imshow(probability_matrix,
                    interpolation='nearest', cmap=plt.cm.Blues)
         plt.colorbar()
@@ -125,10 +126,28 @@ def plot_roc_curve(test_data, predicted_data):
     # Then interpolate all ROC curves at this points
     mean_tpr = np.zeros_like(all_fpr)
     for i in range(n_classes):
-            mean_tpr += interp(all_fpr, fpr[i], tpr[i])
+        mean_tpr += interp(all_fpr, fpr[i], tpr[i])
+    # Finally average it and compute AUC
+    mean_tpr /= n_classes
+    # compute AUC
+    roc_auc = auc(all_fpr, mean_tpr)
+    print('AUC = {0}'.format(roc_auc))
 
-
-
+    # Plot ROC (Macro)
+    plt.figure()
+    plt.plot(all_fpr, mean_tpr,
+             label='macro-average ROC curve (area = {0:0.2f})'.format(roc_auc),
+             linewidth=4)
+    plt.plot([0,1], [0,1], 'k--', lw=2)
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Multi-class macro average ROC curve.')
+    plt.legend(loc="lower right")
+    plt.show()
+    # return AUC just in case 
+    return roc_auc
 
 
 
