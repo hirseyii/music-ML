@@ -59,9 +59,10 @@ def IsShorter(yt_object, max_length=0):
 A function to scrape audio from youtube videos given a set of queries passed as
 a string of terms separated by '+' or ' '. Scrapes page by page, (20 videos per
 page). Creates new directory in CWD to store audio files. Can filter by video
-upload age in years.
+upload age in years and video length.
+The force_in_title flag can be set to force searching using YouTube's intitle search flag.
 """
-def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None, max_length=None):
+def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None, max_length=None, force_in_title=True):
     # Check arguments
     if type(num_videos) is not int or num_videos <= 0:
         raise ValueError("ScrapeAudio() : Invalid argument - num_videos should be a positive integer")
@@ -85,8 +86,12 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None, max_leng
     parsed_count = 0
     page_counter = 0
 
-    # base
-    base = "https://www.youtube.com/results?search_query="+query
+    # switch base depending on force_in_title flag. Makes the first query search with
+    # intitle: set
+    if force_in_flag:
+        base = "https://www.youtube.com/results?search_query=intitle%3A"+query
+    elif not force_in_flag:
+        base = "https://www.youtube.com/results?search_query="+query
 
     # For saving to file we need to make a directory if it doesn't exist already
     # and check the file is empty etc.
