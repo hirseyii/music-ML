@@ -68,219 +68,218 @@ def rms_on_chunks(time_series, chunk_size, sr=22050):
 # This is the main function which gets features from the songs. Most values
 # returned are the mean of the whole time series, hence '_a'.
 def get_features_mean(song, sr, hop_length, n_fft):
- #  try:
-    print('extracting features...')
-    # split song into harmonic and percussive parts
-    y_harmonic, y_percussive = lb.effects.hpss(song)
-    # Compute power spectrogram.
-    stft_harmonic = lb.core.stft(
-        y_harmonic, n_fft=n_fft, hop_length=hop_length)
-    # Compute power spectrogram.
-    stft_percussive = lb.core.stft(
-        y_percussive, n_fft=n_fft, hop_length=hop_length)
-    ## Compute power spectrogram.
-    # stft_all=lb.core.stft(song, n_fft=n_fft, hop_length=hop_length)
+    try:
+        print('extracting features...')
+        # split song into harmonic and percussive parts
+        y_harmonic, y_percussive = lb.effects.hpss(song)
+        # Compute power spectrogram.
+        stft_harmonic = lb.core.stft(
+            y_harmonic, n_fft=n_fft, hop_length=hop_length)
+        # Compute power spectrogram.
+        stft_percussive = lb.core.stft(
+            y_percussive, n_fft=n_fft, hop_length=hop_length)
+        # Compute power spectrogram.
+        # stft_all=lb.core.stft(song, n_fft=n_fft, hop_length=hop_length)
 
-    # =========Split by frequency bands and compute RMSE features============
-    # [5,25] Choose number of bands, do low and high resolution?
-    band_resolution = [5]
-    bands_dict = OrderedDict()
-    for no_bands in band_resolution:
-        # note that as n_fft is 2050 (I've decided this is sensible resolution), bands/10=freq
-        bands = np.logspace(1.3, 4, no_bands) / 10
-        bands_int = bands.astype(int)
-        # removing double entries less than 100Hz, because logspace bunches up
-        # down there and we don't need doubles when rounding to the nearest 10 Hz.
-        bands_int_unique = list(unique_everseen(bands_int))
-        for i in range(0, len(bands_int_unique) - 1):
+        # =========Split by frequency bands and compute RMSE features============
+        # [5,25] Choose number of bands, do low and high resolution?
+        band_resolution = [5]
+        bands_dict = OrderedDict()
+        for no_bands in band_resolution:
+            # note that as n_fft is 2050 (I've decided this is sensible resolution), bands/10=freq
+            bands = np.logspace(1.3, 4, no_bands) / 10
+            bands_int = bands.astype(int)
+            # removing double entries less than 100Hz, because logspace bunches up
+            # down there and we don't need doubles when rounding to the nearest 10 Hz.
+            bands_int_unique = list(unique_everseen(bands_int))
+            for i in range(0, len(bands_int_unique) - 1):
 
-            _h = lb.feature.rmse(
-                S=(splitF(bands_int_unique[i], bands_int_unique[i + 1], stft_harmonic)))
-            _p = lb.feature.rmse(
-                S=(splitF(bands_int_unique[i], bands_int_unique[i + 1], stft_percussive)))
-            # Calculate statistics for harmoinc and percussive over the time series.
-            rms_h = np.mean(np.abs(_h))
-            std_h = np.std(np.abs(_h))
-            # skew of the time series (avg along freq axis, axis=0)
-            skew_h = skew(np.mean(np.abs(_h), axis=0))
-            # kurtosis of time series (avg along freq axis=0)
-            kurtosis_h = kurtosis(
-                np.mean(np.abs(_h), axis=0), fisher=True, bias=True)
-            rms_p = np.mean(np.abs(_p))
-            std_p = np.std(np.abs(_p))
-            # skew of the time series (avg along freq axis, axis=0)
-            skew_p = skew(np.mean(np.abs(_p), axis=0))
-            # kurtosis of time series (avg along freq axis=0)
-            kurtosis_p = kurtosis(
-                np.mean(np.abs(_p), axis=0), fisher=True, bias=True)
+                _h = lb.feature.rmse(
+                    S=(splitF(bands_int_unique[i], bands_int_unique[i + 1], stft_harmonic)))
+                _p = lb.feature.rmse(
+                    S=(splitF(bands_int_unique[i], bands_int_unique[i + 1], stft_percussive)))
+                # Calculate statistics for harmoinc and percussive over the time series.
+                rms_h = np.mean(np.abs(_h))
+                std_h = np.std(np.abs(_h))
+                # skew of the time series (avg along freq axis, axis=0)
+                skew_h = skew(np.mean(np.abs(_h), axis=0))
+                # kurtosis of time series (avg along freq axis=0)
+                kurtosis_h = kurtosis(
+                    np.mean(np.abs(_h), axis=0), fisher=True, bias=True)
+                rms_p = np.mean(np.abs(_p))
+                std_p = np.std(np.abs(_p))
+                # skew of the time series (avg along freq axis, axis=0)
+                skew_p = skew(np.mean(np.abs(_p), axis=0))
+                # kurtosis of time series (avg along freq axis=0)
+                kurtosis_p = kurtosis(
+                    np.mean(np.abs(_p), axis=0), fisher=True, bias=True)
 
-            # Append results to dict, with numbers as band labels
-            bands_dict.update({'{0}band_rms_h{1}'.format(
-                no_bands, i): rms_h, '{0}band_rms_p{1}'.format(no_bands, i): rms_p})
-            bands_dict.update({'{0}band_std_h{1}'.format(
-                no_bands, i): std_h, '{0}band_std_p{1}'.format(no_bands, i): std_p})
-            bands_dict.update({'{0}band_skew_h{1}'.format(
-                no_bands, i): skew_h, '{0}band_skew_p{1}'.format(no_bands, i): skew_p})
-            bands_dict.update({'{0}band_kurtosis_h{1}'.format(
-                no_bands, i): kurtosis_h, '{0}band_kurtosis_p{1}'.format(no_bands, i): kurtosis_p})
+                # Append results to dict, with numbers as band labels
+                bands_dict.update({'{0}band_rms_h{1}'.format(
+                    no_bands, i): rms_h, '{0}band_rms_p{1}'.format(no_bands, i): rms_p})
+                bands_dict.update({'{0}band_std_h{1}'.format(
+                    no_bands, i): std_h, '{0}band_std_p{1}'.format(no_bands, i): std_p})
+                bands_dict.update({'{0}band_skew_h{1}'.format(
+                    no_bands, i): skew_h, '{0}band_skew_p{1}'.format(no_bands, i): skew_p})
+                bands_dict.update({'{0}band_kurtosis_h{1}'.format(
+                    no_bands, i): kurtosis_h, '{0}band_kurtosis_p{1}'.format(no_bands, i): kurtosis_p})
 
-    ## Compute a chromagram from a waveform or power spectrogram.
-    # stft=lb.feature.chroma_stft(song, sr, n_fft=n_fft, hop_length=hop_length)
-    # stft_a=np.mean(stft[0])
-    # stft_std=np.std(stft[0])
-    ## Compute root-mean-square (RMS) energy for each frame, either from the
-    ## audio samples y or from a spectrogram S.
-    # rmse=lb.feature.rmse(y=song)
-    # rmse_a=np.mean(rmse)
-    # rmse_std=np.std(rmse)
+        # Compute a chromagram from a waveform or power spectrogram.
+        # stft=lb.feature.chroma_stft(song, sr, n_fft=n_fft, hop_length=hop_length)
+        # stft_a=np.mean(stft[0])
+        # stft_std=np.std(stft[0])
+        # Compute root-mean-square (RMS) energy for each frame, either from the
+        # audio samples y or from a spectrogram S.
+        # rmse=lb.feature.rmse(y=song)
+        # rmse_a=np.mean(rmse)
+        # rmse_std=np.std(rmse)
 
-    # Compute root-mean-square (RMS) energy for harmonic
-    rmseH = np.abs(lb.feature.rmse(S=stft_harmonic))
-    rmseH_a = np.mean(rmseH)
-    rmseH_std = np.std(rmseH)
-    rmseH_skew = skew(np.mean(rmseH, axis=0))
-    rmseH_kurtosis = kurtosis(np.mean(rmseH, axis=0), fisher=True, bias=True)
-    # Compute root-mean-square (RMS) energy for percussive
-    rmseP = np.abs(lb.feature.rmse(S=stft_percussive))
-    rmseP_a = np.mean(rmseP)
-    rmseP_std = np.std(rmseP)
-    rmseP_skew = skew(np.mean(rmseP, axis=0))
-    rmseP_kurtosis = kurtosis(np.mean(rmseP, axis=0), fisher=True, bias=True)
+        # Compute root-mean-square (RMS) energy for harmonic
+        rmseH = np.abs(lb.feature.rmse(S=stft_harmonic))
+        rmseH_a = np.mean(rmseH)
+        rmseH_std = np.std(rmseH)
+        rmseH_skew = skew(np.mean(rmseH, axis=0))
+        rmseH_kurtosis = kurtosis(np.mean(rmseH, axis=0), fisher=True, bias=True)
+        # Compute root-mean-square (RMS) energy for percussive
+        rmseP = np.abs(lb.feature.rmse(S=stft_percussive))
+        rmseP_a = np.mean(rmseP)
+        rmseP_std = np.std(rmseP)
+        rmseP_skew = skew(np.mean(rmseP, axis=0))
+        rmseP_kurtosis = kurtosis(np.mean(rmseP, axis=0), fisher=True, bias=True)
 
-    # ========================Whole-song spectral features===================
-    # Declare dictionary
-    features_dict = OrderedDict()
-    # Compute the spectral centroid.
-    centroid = lb.feature.spectral_centroid(
-        song, sr, n_fft=n_fft, hop_length=hop_length)
-    centroid_a = np.mean(centroid)
-    centroid_std = np.std(centroid)
-    # Compute pth-order spectral bandwidth:
-    bw = lb.feature.spectral_bandwidth(
-        song, sr, n_fft=n_fft, hop_length=hop_length)
-    bw_a = np.mean(bw)
-    bw_std = np.std(bw)
-    # Compute spectral contrast [R16]
-    contrast = lb.feature.spectral_contrast(
-        song, sr, n_fft=n_fft, hop_length=hop_length)
-    contrast_a = np.mean(contrast)
-    contrast_std = np.std(contrast)
-    # Get coefficients of fitting an nth-order polynomial to the columns of a spectrogram.
-    polyfeat = lb.feature.poly_features(
-        y_harmonic, sr, n_fft=n_fft, hop_length=hop_length)
-    polyfeat_grad_a = np.mean(polyfeat[0])
-    polyfeat_grad_std = np.std(polyfeat[0])
-    polyfeat_const_a = np.mean(polyfeat[1])
-    polyfeat_const_std = np.std(polyfeat[1])
-    # zero crossing rate
-    zcr = lb.feature.zero_crossing_rate(song, sr, hop_length=hop_length)
-    zcr_a = np.mean(zcr)
-    zcr_std = np.std(zcr)
-    # onset
-    onset_env = lb.onset.onset_strength(y_percussive, sr=sr)
-    onset_a = np.mean(onset_env)
-    onset_std = np.std(onset_env)
+        # ========================Whole-song spectral features===================
+        # Declare dictionary
+        features_dict = OrderedDict()
+        # Compute the spectral centroid.
+        centroid = lb.feature.spectral_centroid(
+            song, sr, n_fft=n_fft, hop_length=hop_length)
+        centroid_a = np.mean(centroid)
+        centroid_std = np.std(centroid)
+        # Compute pth-order spectral bandwidth:
+        bw = lb.feature.spectral_bandwidth(
+            song, sr, n_fft=n_fft, hop_length=hop_length)
+        bw_a = np.mean(bw)
+        bw_std = np.std(bw)
+        # Compute spectral contrast [R16]
+        contrast = lb.feature.spectral_contrast(
+            song, sr, n_fft=n_fft, hop_length=hop_length)
+        contrast_a = np.mean(contrast)
+        contrast_std = np.std(contrast)
+        # Get coefficients of fitting an nth-order polynomial to the columns of a spectrogram.
+        polyfeat = lb.feature.poly_features(
+            y_harmonic, sr, n_fft=n_fft, hop_length=hop_length)
+        polyfeat_grad_a = np.mean(polyfeat[0])
+        polyfeat_grad_std = np.std(polyfeat[0])
+        polyfeat_const_a = np.mean(polyfeat[1])
+        polyfeat_const_std = np.std(polyfeat[1])
+        # zero crossing rate
+        zcr = lb.feature.zero_crossing_rate(song, sr, hop_length=hop_length)
+        zcr_a = np.mean(zcr)
+        zcr_std = np.std(zcr)
+        # onset
+        onset_env = lb.onset.onset_strength(y_percussive, sr=sr)
+        onset_a = np.mean(onset_env)
+        onset_std = np.std(onset_env)
 
-    # Beat sync stuff
-    D = librosa.stft(song)
-    # not returned, but could be if you want to plot things as a time series
-    times = librosa.frames_to_time(np.arange(D.shape[1]))
-    bpm, beats = lb.beat.beat_track(
-        y=y_percussive, sr=sr, onset_envelope=onset_env, units='time')
-    beats_a = np.mean(beats)
-    beats_std = np.std(beats)
-    # Add features to dictionary
-    features_dict.update({
-        'rmseP_a': rmseP_a,
-        'rmseP_std': rmseP_std,
-        'rmseH_a': rmseH_a,
-        'rmseH_std': rmseH_std,
-        'centroid_a': centroid_a,
-        'centroid_std': centroid_std,
-        'bw_a': bw_a, 'bw_std': bw_std,
-        'contrast_a': contrast_a,
-        'contrast_std': contrast_std,
-        'polyfeat_grad_a': polyfeat_grad_a,
-        'polyfeat_grad_std': polyfeat_grad_std,
-        'polyfeat_grad_a': polyfeat_grad_a,
-        'polyfeat_grad_std': polyfeat_grad_std,
-        'polyfeat_const_a': polyfeat_const_a,
-        'polyfeat_const_std': polyfeat_const_std,
-        'zcr_a': zcr_a,
-        'zcr_std': zcr_std,
-        'onset_a': onset_a,
-        'onset_std': onset_std,
-        'bpm': bpm,
-        'rmseP_skew': rmseP_skew,
-        'rmseP_kurtosis': rmseP_kurtosis,
-        'rmseH_skew': rmseH_skew,
-        'rmseH_kurtosis': rmseH_kurtosis
-    })
-    # ==========================Chromatic Features===========================
-    # Compute beat-synced chromagram
-    chroma = lb.feature.chroma_cqt(y=song, sr=sr)
-    fixed_beat = lb.util.fix_frames(beats, x_max=chroma.shape[1])
-    chroma_synced = lb.util.sync(chroma, fixed_beat, aggregate=np.median)
-    # compute average note weight
-    # notes are labelled using the duodecimal convention t=10, e=11
-    features_dict.update({
-        'avg_note_weight_0': np.mean(chroma_synced[0, :]),
-        'avg_note_weight_1': np.mean(chroma_synced[1, :]),
-        'avg_note_weight_2': np.mean(chroma_synced[2, :]),
-        'avg_note_weight_3': np.mean(chroma_synced[3, :]),
-        'avg_note_weight_4': np.mean(chroma_synced[4, :]),
-        'avg_note_weight_5': np.mean(chroma_synced[5, :]),
-        'avg_note_weight_6': np.mean(chroma_synced[6, :]),
-        'avg_note_weight_7': np.mean(chroma_synced[7, :]),
-        'avg_note_weight_8': np.mean(chroma_synced[8, :]),
-        'avg_note_weight_9': np.mean(chroma_synced[9, :]),
-        'avg_note_weight_t': np.mean(chroma_synced[10, :]),
-        'avg_note_weight_e': np.mean(chroma_synced[11, :])
-    })
-    # std note weight
-    features_dict.update({
-        'std_note_weight_0': np.std(chroma_synced[0, :]),
-        'std_note_weight_1': np.std(chroma_synced[1, :]),
-        'std_note_weight_2': np.std(chroma_synced[2, :]),
-        'std_note_weight_3': np.std(chroma_synced[3, :]),
-        'std_note_weight_4': np.std(chroma_synced[4, :]),
-        'std_note_weight_5': np.std(chroma_synced[5, :]),
-        'std_note_weight_6': np.std(chroma_synced[6, :]),
-        'std_note_weight_7': np.std(chroma_synced[7, :]),
-        'std_note_weight_8': np.std(chroma_synced[8, :]),
-        'std_note_weight_9': np.std(chroma_synced[9, :]),
-        'std_note_weight_t': np.std(chroma_synced[10, :]),
-        'std_note_weight_e': np.std(chroma_synced[11, :])
-    })
-
-    # Tonnetz rework - instead of just taking mean and stdev, we take the
-    # mean of each tonnetz dimension to give an average tonnetz position.
-    # Tonnetz dims are given in the librosa docs
-    tonnetz = lb.feature.tonnetz(y=song, sr=sr)
-    for dim in range(tonnetz.shape[0]):
+        # Beat sync stuff
+        D = librosa.stft(song)
+        # not returned, but could be if you want to plot things as a time series
+        times = librosa.frames_to_time(np.arange(D.shape[1]))
+        bpm, beats = lb.beat.beat_track(
+            y=y_percussive, sr=sr, onset_envelope=onset_env, units='time')
+        beats_a = np.mean(beats)
+        beats_std = np.std(beats)
+        # Add features to dictionary
         features_dict.update({
-            'avg_tonnetz_{0}'.format(dim): np.mean(tonnetz[dim, :]),
-            'std_tonnetz_{0}'.format(dim): np.std(tonnetz[dim, :])
+            'rmseP_a': rmseP_a,
+            'rmseP_std': rmseP_std,
+            'rmseH_a': rmseH_a,
+            'rmseH_std': rmseH_std,
+            'centroid_a': centroid_a,
+            'centroid_std': centroid_std,
+            'bw_a': bw_a, 'bw_std': bw_std,
+            'contrast_a': contrast_a,
+            'contrast_std': contrast_std,
+            'polyfeat_grad_a': polyfeat_grad_a,
+            'polyfeat_grad_std': polyfeat_grad_std,
+            'polyfeat_grad_a': polyfeat_grad_a,
+            'polyfeat_grad_std': polyfeat_grad_std,
+            'polyfeat_const_a': polyfeat_const_a,
+            'polyfeat_const_std': polyfeat_const_std,
+            'zcr_a': zcr_a,
+            'zcr_std': zcr_std,
+            'onset_a': onset_a,
+            'onset_std': onset_std,
+            'bpm': bpm,
+            'rmseP_skew': rmseP_skew,
+            'rmseP_kurtosis': rmseP_kurtosis,
+            'rmseH_skew': rmseH_skew,
+            'rmseH_kurtosis': rmseH_kurtosis
+        })
+        # ==========================Chromatic Features===========================
+        # Compute beat-synced chromagram
+        chroma = lb.feature.chroma_cqt(y=song, sr=sr)
+        fixed_beat = lb.util.fix_frames(beats, x_max=chroma.shape[1])
+        chroma_synced = lb.util.sync(chroma, fixed_beat, aggregate=np.median)
+        # compute average note weight
+        # notes are labelled using the duodecimal convention t=10, e=11
+        features_dict.update({
+            'avg_note_weight_0': np.mean(chroma_synced[0, :]),
+            'avg_note_weight_1': np.mean(chroma_synced[1, :]),
+            'avg_note_weight_2': np.mean(chroma_synced[2, :]),
+            'avg_note_weight_3': np.mean(chroma_synced[3, :]),
+            'avg_note_weight_4': np.mean(chroma_synced[4, :]),
+            'avg_note_weight_5': np.mean(chroma_synced[5, :]),
+            'avg_note_weight_6': np.mean(chroma_synced[6, :]),
+            'avg_note_weight_7': np.mean(chroma_synced[7, :]),
+            'avg_note_weight_8': np.mean(chroma_synced[8, :]),
+            'avg_note_weight_9': np.mean(chroma_synced[9, :]),
+            'avg_note_weight_t': np.mean(chroma_synced[10, :]),
+            'avg_note_weight_e': np.mean(chroma_synced[11, :])
+        })
+        # std note weight
+        features_dict.update({
+            'std_note_weight_0': np.std(chroma_synced[0, :]),
+            'std_note_weight_1': np.std(chroma_synced[1, :]),
+            'std_note_weight_2': np.std(chroma_synced[2, :]),
+            'std_note_weight_3': np.std(chroma_synced[3, :]),
+            'std_note_weight_4': np.std(chroma_synced[4, :]),
+            'std_note_weight_5': np.std(chroma_synced[5, :]),
+            'std_note_weight_6': np.std(chroma_synced[6, :]),
+            'std_note_weight_7': np.std(chroma_synced[7, :]),
+            'std_note_weight_8': np.std(chroma_synced[8, :]),
+            'std_note_weight_9': np.std(chroma_synced[9, :]),
+            'std_note_weight_t': np.std(chroma_synced[10, :]),
+            'std_note_weight_e': np.std(chroma_synced[11, :])
         })
 
-    combine_features = {**features_dict, **bands_dict}
-    print('features extracted successfully')
-    return combine_features
+        # Tonnetz rework - instead of just taking mean and stdev, we take the
+        # mean of each tonnetz dimension to give an average tonnetz position.
+        # Tonnetz dims are given in the librosa docs
+        tonnetz = lb.feature.tonnetz(y=song, sr=sr)
+        for dim in range(tonnetz.shape[0]):
+            features_dict.update({
+                'avg_tonnetz_{0}'.format(dim): np.mean(tonnetz[dim, :]),
+                'std_tonnetz_{0}'.format(dim): np.std(tonnetz[dim, :])
+            })
 
-
-"""
-    except:
+        combine_features = {**features_dict, **bands_dict}
+        print('features extracted successfully')
+        return combine_features
+    # Catch fails
+    except Exception as ex:
         print('.'*20+'FAILED'+'.'*20)
         print('.'*40)
-"""
+
+
 # a function to look at beat tracking... not used in machine learning yet,
 # just random investigations.
 def beattrack(song, sr, hop_length, n_fft):
     y_harmonic, y_percussive = lb.effects.hpss(song)
     beattrack = lb.beat.beat_track(y=y_percussive, sr=sr,
-                                    onset_envelope=None, hop_length=hop_length,
-                                    start_bpm=120.0, tightness=100, trim=True,
-                                    bpm=None, units='frames')
+                                   onset_envelope=None, hop_length=hop_length,
+                                   start_bpm=120.0, tightness=100, trim=True,
+                                   bpm=None, units='frames')
 
 
 # load music function, accepts any format i've encountered: mp3,wav,wma bla bla
@@ -292,7 +291,7 @@ def load_music(songname1, songpath1):
         songdata1, sr1 = lb.load(songpath1)
         print('done........ ' + songname1)
         return [songname1, songdata1, sr1]
-    except:
+    except Exception as ex:
         # the song could be corrupt? you could be trying to load
         # something which isn't a song?
         print('..............................FAILED...............................')
@@ -320,7 +319,7 @@ def gridplot(data_dict, feature, size, N, ind):
     i = 0
     j = 0
     for key in data_dict:
-        #print (i,j)
+        # print (i,j)
         axarr[i, j].plot(np.convolve(data_dict[key][feature]
                                      [ind], np.ones((N,)) / N, mode='valid'))
         axarr[i, j].set_title(key[:3])
@@ -359,7 +358,7 @@ if __name__ == "__main__":
     savefile = path + load_filename + '_data'
     # now load song data in
     for song in os.listdir(path):
-        #print (song)
+        # print (song)
         songname_tmp.append(song)
         songpath_tmp.append(path + '/' + song)
 
@@ -380,7 +379,7 @@ if __name__ == "__main__":
         pool.close()
         pool.join()
     print('finished loading songs into songdb')
-    #print (songdb)
+    # print (songdb)
     print('loaded {0} songs into memory'.format(len(songdb)))
     # remove entries where loading may have failed for any reason (rare cases)
     songdb = [x for x in songdb if x is not None]
@@ -398,10 +397,9 @@ if __name__ == "__main__":
     print("Data is all ready, now extracting features from the songs...")
     # extract features from songs with multiprocesssing
     with multiprocessing.Pool(processes=num_workers, maxtasksperchild=1) as pool:
-        res = pool.starmap(get_features_mean,
-                            zip(song_data, song_sr,
-                                itertools.repeat(hop_length1),
-                                itertools.repeat(n_fft1)))
+        res = pool.starmap(get_features_mean, zip(song_data, song_sr,
+                                                  itertools.repeat(hop_length1),
+                                                  itertools.repeat(n_fft1)))
         pool.close()
         pool.join()
 
