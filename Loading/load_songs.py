@@ -42,6 +42,23 @@ def splitF(minv, maxv, songdat):
         splitfreq.append(songdat[i,:]) # first axis is freq, second axis is time. Return all time for specific freq range.
     return (np.array(splitfreq))
 
+# a function to calculate the RMS of chunks of time series data of a specified width in seconds.
+# Returns RMS for each chunk.
+
+def rms_on_chunks(time_series, chunk_size, sr=22050):
+    # define lambda expression for computing the RMS
+    rms = lambda y : np.sqrt(np.mean(y**2))
+    chunk_size = lb.core.time_to_samples(chunk_size, sr)
+    num_chunks = np.floor_divide(len(time_series), chunk_size)
+    # loop over chunks and compute RMS, package into an array
+    res = []
+    for i in range(num_chunks):
+        chunk = time_series[i*chunk_size : (i+1)*chunk_size]
+        res.append(rms(chunk))
+    return res
+
+
+    
 #This is the main function which gets features from the songs. Most values returned are the mean of the whole time series, hence '_a'.
 def get_features_mean(song,sr,hop_length,n_fft):
  #  try:
