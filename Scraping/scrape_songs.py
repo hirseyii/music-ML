@@ -63,7 +63,8 @@ def IsCorrectLength(yt_object, min_length=0, max_length=0):
 # page). Creates new directory in CWD to store audio files. Can filter by video
 # upload age in years and video length.
 # The force_in_title flag can be set to force searching using YouTube's intitle search flag.
-def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None, max_length=None, force_in_title=True):
+def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None,
+                max_length=None, force_in_title=True, check_directory=True):
     # define a few parameters that aren't often tweaked
     min_duration = 30
     max_duration = 6000
@@ -104,7 +105,7 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None, max_leng
     if os.path.isdir(save_path):
         if os.listdir(save_path) == []:
             pass
-        else:
+        elif check_directory:
             # if directory is not empty ask for confimration
             valid_response = False
             while not valid_response:
