@@ -12,21 +12,19 @@ import datetime
 from pytube import YouTube
 
 
-"""
-A function to grab the upload date of a youtube video from HTML. The age of the
-video is calculated (in yrs?) and compared to the max upload age. Returns True
-if the upload age is less than or equal to the max upload age, returns false otherwise.
-"""
+# A function to grab the upload date of a youtube video from HTML. The age of the
+# video is calculated (in yrs?) and compared to the max upload age. Returns True
+# if the upload age is less than or equal to the max upload age, returns false otherwise.
+
 def IsYounger(vid_url, max_upload_age):
-    #
-    if max_upload_age == None:
+    if max_upload_age is None:
         return True
     elif type(max_upload_age) != int or max_upload_age < 1:
         raise ValueError("IsYounger() : Invalid argument - max_upload_age should be a positive integer")
     try:
         watch_page = requests.get(vid_url).text
     except Exception as e:
-        print("IsYounger() : request failed ",e)
+        print("IsYounger() : request failed ", e)
         exit(1)
 
     soup = bs(watch_page, 'html.parser')
@@ -46,23 +44,30 @@ def IsYounger(vid_url, max_upload_age):
 
 
 # Returns true if a video's runtime is shorter than the specified max_length (in seconds)
-def IsShorter(yt_object, max_length=0):
+def IsCorrectLength(yt_object, min_length=0, max_length=0):
+    # check args
+    if min_length > max_length:
+        raise ValueError("min_length should be less than max_length dummy!")
+
     # grab length from the yt object.
     if yt_object.length > max_length:
         return False
-    elif max_length == None:
+    elif max_length is None:
         return True
     else:
         return True
 
-"""
-A function to scrape audio from youtube videos given a set of queries passed as
-a string of terms separated by '+' or ' '. Scrapes page by page, (20 videos per
-page). Creates new directory in CWD to store audio files. Can filter by video
-upload age in years and video length.
-The force_in_title flag can be set to force searching using YouTube's intitle search flag.
-"""
+
+# A function to scrape audio from youtube videos given a set of queries passed as
+# a string of terms separated by '+' or ' '. Scrapes page by page, (20 videos per
+# page). Creates new directory in CWD to store audio files. Can filter by video
+# upload age in years and video length.
+# The force_in_title flag can be set to force searching using YouTube's intitle search flag.
 def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None, max_length=None, force_in_title=True):
+    # define a few parameters that aren't often tweaked
+    min_duration = 30
+    max_duration = 6000
+
     # Check arguments
     if type(num_videos) is not int or num_videos <= 0:
         raise ValueError("ScrapeAudio() : Invalid argument - num_videos should be a positive integer")
@@ -76,7 +81,7 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None, max_leng
     if save_path is None:
             save_path = os.getcwd()+'/SCRAPES_'+query.replace('+', '_')
     # max_upload_age is optional, None=no filter on upload date.
-    if max_upload_age == None:
+    if max_upload_age is None:
         pass
     elif type(max_upload_age) is not int or max_upload_age < 1:
         raise ValueError("ScrapeAudio() : Invalid argument - max_upload_age should be a positive integer")
@@ -88,9 +93,9 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None, max_leng
 
     # switch base depending on force_in_title flag. Makes the first query search with
     # intitle: set
-    if force_in_flag:
+    if force_in_title:
         base = "https://www.youtube.com/results?search_query=intitle%3A"+query
-    elif not force_in_flag:
+    elif not force_in_title:
         base = "https://www.youtube.com/results?search_query="+query
 
     # For saving to file we need to make a directory if it doesn't exist already
@@ -124,10 +129,10 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None, max_leng
     while True:
         # grab page and parse html
         r = requests.get(base)
-        page=r.text
-        soup = bs(page,'html.parser')
+        page = r.text
+        soup = bs(page, 'html.parser')
         # grab video links from thumbnail links
-        vids = soup.findAll('a', attrs={'class':'yt-uix-tile-link'})
+        vids = soup.findAll('a', attrs={'class': 'yt-uix-tile-link'})
         # create a list of relevant URLS
         videolist = []
         for v in vids:
@@ -136,7 +141,7 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None, max_leng
                 continue
             tmp = 'https://www.youtube.com' + v['href']
             videolist.append(tmp)
-        print("There are ",len(videolist)," videos returned for page "+str(page_counter+1))
+        print("There are ", len(videolist), " videos returned for page "+str(page_counter+1))
         # loop over video (YT) objects in each page
         for video_url in videolist:
             parsed_count += 1
@@ -144,9 +149,9 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None, max_leng
                 # initialise youtube object
                 yt = YouTube(video_url)
                 # check video upload age
-                if IsYounger(video_url, max_upload_age) and IsShorter(yt, max_duration):
+                if IsYounger(video_url, max_upload_age) and IsCorrectLength(yt, min_duration, max_duration):
                     # filter AV stream
-                    stream = yt.streams.filter(progressive=True,file_extension='mp4',resolution='360p').first()
+                    stream = yt.streams.filter(progressive=True, file_extension='mp4', resolution='360p').first()
                     # download audio from stream
                     # check whether title already exists
                     if os.path.isfile(save_path+'/'+stream.default_filename):
@@ -195,8 +200,3 @@ if __name__ == '__main__':
     ScrapeAudio('audi advert', 100, save_path='/raid/scratch/sen/adverts/cars/', max_upload_age=5)
     ScrapeAudio('honda advert', 100, save_path='/raid/scratch/sen/adverts/cars/', max_upload_age=5)
     ScrapeAudio('vw advert', 100, save_path='/raid/scratch/sen/adverts/cars/', max_upload_age=5)
-
-
-
-
-
