@@ -63,7 +63,7 @@ def IsCorrectLength(yt_object, min_length=0, max_length=0):
 # page). Creates new directory in CWD to store audio files. Can filter by video
 # upload age in years and video length.
 # The force_in_title flag can be set to force searching using YouTube's intitle search flag.
-def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None,
+def ScrapeVideo(query, num_videos, save_path=None, max_upload_age=None,
                 max_length=None, force_in_title=True, check_directory=True):
     # define a few parameters that aren't often tweaked
     min_duration = 30
@@ -71,10 +71,10 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None,
 
     # Check arguments
     if type(num_videos) is not int or num_videos <= 0:
-        raise ValueError("ScrapeAudio() : Invalid argument - num_videos should be a positive integer")
+        raise ValueError("ScrapeVideo() : Invalid argument - num_videos should be a positive integer")
 
     if type(query) is not str:
-        raise ValueError("ScrapeAudio() : Invalid argument - query should be a string with terms separated by \'+\'")
+        raise ValueError("ScrapeVideo() : Invalid argument - query should be a string with terms separated by \'+\'")
     if ' ' in query:
         query = query.replace(' ', '+')
 
@@ -85,7 +85,7 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None,
     if max_upload_age is None:
         pass
     elif type(max_upload_age) is not int or max_upload_age < 1:
-        raise ValueError("ScrapeAudio() : Invalid argument - max_upload_age should be a positive integer")
+        raise ValueError("ScrapeVideo() : Invalid argument - max_upload_age should be a positive integer")
 
     # declare counters
     download_count = 0
@@ -184,20 +184,20 @@ def ScrapeAudio(query, num_videos, save_path=None, max_upload_age=None,
 
 
 if __name__ == '__main__':
-    ScrapeAudio('chanel advert', 100, save_path='/raid/scratch/sen/adverts/perfume/', max_upload_age=5)
-    ScrapeAudio('dior advert', 100, save_path='/raid/scratch/sen/adverts/perfume/', max_upload_age=5, check_directory=False)
-    ScrapeAudio('gucci perfume advert', 100, save_path='/raid/scratch/sen/adverts/perfume/', max_upload_age=5, check_directory=False)
-    ScrapeAudio('bvlgari perfume advert', 100, save_path='/raid/scratch/sen/adverts/perfume/', max_upload_age=5, check_directory=False)
-    ScrapeAudio('hugo boss perfume advert', 100, save_path='/raid/scratch/sen/adverts/perfume/', max_upload_age=5, check_directory=False)
+    ScrapeVideo('chanel advert', 100, save_path='/raid/scratch/sen/adverts/perfume/', max_upload_age=5)
+    ScrapeVideo('dior advert', 100, save_path='/raid/scratch/sen/adverts/perfume/', max_upload_age=5, check_directory=False)
+    ScrapeVideo('gucci perfume advert', 100, save_path='/raid/scratch/sen/adverts/perfume/', max_upload_age=5, check_directory=False)
+    ScrapeVideo('bvlgari perfume advert', 100, save_path='/raid/scratch/sen/adverts/perfume/', max_upload_age=5, check_directory=False)
+    ScrapeVideo('hugo boss perfume advert', 100, save_path='/raid/scratch/sen/adverts/perfume/', max_upload_age=5, check_directory=False)
 
-    ScrapeAudio('strongbow advert', 100, save_path='/raid/scratch/sen/adverts/alcohol/', max_upload_age=5)
-    ScrapeAudio('carling advert', 100, save_path='/raid/scratch/sen/adverts/alcohol/', max_upload_age=5, check_directory=False)
-    ScrapeAudio('carlsberg advert', 100, save_path='/raid/scratch/sen/adverts/alcohol/', max_upload_age=5, check_directory=False)
-    ScrapeAudio('fosters advert', 100, save_path='/raid/scratch/sen/adverts/alcohol/', max_upload_age=5, check_directory=False)
-    ScrapeAudio('heineken advert', 100, save_path='/raid/scratch/sen/adverts/alcohol/', max_upload_age=5, check_directory=False)
+    ScrapeVideo('strongbow advert', 100, save_path='/raid/scratch/sen/adverts/alcohol/', max_upload_age=5)
+    ScrapeVideo('carling advert', 100, save_path='/raid/scratch/sen/adverts/alcohol/', max_upload_age=5, check_directory=False)
+    ScrapeVideo('carlsberg advert', 100, save_path='/raid/scratch/sen/adverts/alcohol/', max_upload_age=5, check_directory=False)
+    ScrapeVideo('fosters advert', 100, save_path='/raid/scratch/sen/adverts/alcohol/', max_upload_age=5, check_directory=False)
+    ScrapeVideo('heineken advert', 100, save_path='/raid/scratch/sen/adverts/alcohol/', max_upload_age=5, check_directory=False)
 
-    ScrapeAudio('nissan advert', 100, save_path='/raid/scratch/sen/adverts/cars/', max_upload_age=5, check_directory=False)
-    ScrapeAudio('renault advert', 100, save_path='/raid/scratch/sen/adverts/cars/', max_upload_age=5, check_directory=False)
-    ScrapeAudio('audi advert', 100, save_path='/raid/scratch/sen/adverts/cars/', max_upload_age=5, check_directory=False)
-    ScrapeAudio('honda advert', 100, save_path='/raid/scratch/sen/adverts/cars/', max_upload_age=5, check_directory=False)
-    ScrapeAudio('vw advert', 100, save_path='/raid/scratch/sen/adverts/cars/', max_upload_age=5, check_directory=False)
+    ScrapeVideo('nissan advert', 100, save_path='/raid/scratch/sen/adverts/cars/', max_upload_age=5, check_directory=False)
+    ScrapeVideo('renault advert', 100, save_path='/raid/scratch/sen/adverts/cars/', max_upload_age=5, check_directory=False)
+    ScrapeVideo('audi advert', 100, save_path='/raid/scratch/sen/adverts/cars/', max_upload_age=5, check_directory=False)
+    ScrapeVideo('honda advert', 100, save_path='/raid/scratch/sen/adverts/cars/', max_upload_age=5, check_directory=False)
+    ScrapeVideo('vw advert', 100, save_path='/raid/scratch/sen/adverts/cars/', max_upload_age=5, check_directory=False)
