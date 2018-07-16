@@ -49,19 +49,17 @@ def splitF(minv, maxv, songdat):
     return (np.array(splitfreq))
 
 
-# a function to calculate the RMS of chunks of time series data of a specified
+# a function to apply the function "func" to chunks of time series data of a specified
 # width in seconds.
-# Returns RMS for each chunk.
-def rms_on_chunks(time_series, chunk_size, sr=22050):
-    # define lambda expression for computing the RMS
-    def rms(y): return np.sqrt(np.mean(y**2))
+# Returns func(chunk) for each chunk.
+def compute_on_chunks(func, time_series, chunk_size, sr=22050):
     chunk_size = lb.core.time_to_samples(chunk_size, sr)
     num_chunks = np.floor_divide(len(time_series), chunk_size)
     # loop over chunks and compute RMS, package into an array
     res = []
     for i in range(num_chunks):
         chunk = time_series[i * chunk_size: (i + 1) * chunk_size]
-        res.append(rms(chunk))
+        res.append(func(chunk))
     return res
 
 
@@ -263,37 +261,59 @@ def get_features_mean(song, sr, hop_length, n_fft):
                 'std_tonnetz_{0}'.format(dim): np.std(tonnetz[dim, :])
             })
         # ========================= Windowed features ===========================
-        # These features are calculated by computing the RMS of a time series for
-        # windows of a given width, and then calculating the standard deviation
-        # over all windows. We vary the window size between 5s and 0.5s.
+        # These features are calculated by apply some function of a time series to
+        # windows of a given width, and then calculating the standard deviation,
+        # kurtosis, and skew over all windows.
+        # We vary the window size between 5s and 0.5s.
+        windowed_dict = OrderedDict()
+        # ============ Windowed RMS ============
+
+        # define RMS lambda expression
+        def rms_func(y): return np.sqrt(np.mean(y**2))
         # --------polyfeat---------
         linear_poly = lb.feature.poly_features(y=song, sr=sr, order=1)
-        features_dict.update({
-            'wrms5_poly0_std': np.std(rms_on_chunks(linear_poly[0, :], 5, sr=sr)),
-            'wrms1_poly0_std': np.std(rms_on_chunks(linear_poly[0, :], 1, sr=sr)),
-            'wrms5_poly1_std': np.std(rms_on_chunks(linear_poly[1, :], 5, sr=sr)),
-            'wrms1_poly1_std': np.std(rms_on_chunks(linear_poly[1, :], 1, sr=sr))
+        wrms5_poly0 = compute_on_chunks(rms_func, linear_poly[0, :], 5, sr=sr)
+        wrms1_poly0 = compute_on_chunks(rms_func, linear_poly[0, :], 1, sr=sr)
+        wrms5_poly1 = compute_on_chunks(rms_func, linear_poly[1, :], 5, sr=sr)
+        wrms1_poly1 = compute_on_chunks(rms_func, linear_poly[1, :], 1, sr=sr)
+        windowed_dict.update({
+            'wrms5_poly0_std': np.std(wrms5_poly0),
+            'wrms5_poly0_skew': skew(wrms5_poly0),
+            'wrms5_poly0_kurtosis': kurtosis(wrms5_poly0),
+            'wrms1_poly0_std': np.std(wrms1_poly0),
+            'wrms1_poly0_skew': skew(wrms1_poly0),
+            'wrms1_poly0_kurtosis': kurtosis(wrms1_poly0),
+            'wrms5_poly1_std': np.std(wrms5_poly1),
+            'wrms5_poly1_skew': skew(wrms5_poly1),
+            'wrms5_poly1_kurtosis': kurtosis(wrms5_poly1),
+            'wrms1_poly1_std': np.std(wrms1_poly1),
+            'wrms1_poly1_skew': skew(wrms1_poly1),
+            'wrms1_poly1_kurtosis': kurtosis(wrms1_poly1)
         })
 
         # -------harmonic + percussive--------
-        features_dict.update({
-            'wrms5_harm_std': np.std(rms_on_chunks(y_harmonic, 5, sr=sr)),
-            'wrms1_harm_std': np.std(rms_on_chunks(y_harmonic, 1, sr=sr)),
-            'wrms5_perc_std': np.std(rms_on_chunks(y_percussive, 5, sr=sr)),
-            'wrms1_perc_std': np.std(rms_on_chunks(y_percussive, 5, sr=sr))
+        wrms5_harm = compute_on_chunks(rms_func, y_harmonic, 5, sr=sr)
+        wrms1_harm = compute_on_chunks(rms_func, y_harmonic, 1, sr=sr)
+        wrms5_perc = compute_on_chunks(rms_func, y_percussive, 5, sr=sr)
+        wrms1_perc = compute_on_chunks(rms_func, y_percussive, 1, sr=sr)
+        windowed_dict.update({
+            'wrms5_harm_std': np.std(wrms5_harm),
+            'wrms5_harm_skew': skew(wrms5_harm),
+            'wrms5_harm_kurtosis': kurtosis(wrms5_harm),
+            'wrms1_harm_std': np.std(wrms1_harm),
+            'wrms1_harm_skew': skew(wrms1_harm),
+            'wrms1_harm_kurtosis': kurtosis(wrms1_harm),
+            'wrms5_perc_std': np.std(wrms5_perc),
+            'wrms5_perc_skew': skew(wrms5_perc),
+            'wrms5_perc_kurtosis': kurtosis(wrms5_perc),
+            'wrms1_perc_std': np.std(wrms1_perc),
+            'wrms1_perc_skew': skew(wrms1_perc),
+            'wrms1_perc_kurtosis': kurtosis(wrms1_perc),
         })
 
 
 
-
-
-
-
-
-
-
-
-        combine_features = {**features_dict, **bands_dict}
+        combine_features = {**features_dict, **bands_dict, **windowed_dict}
         print('features extracted successfully')
         return combine_features
     # Catch fails
