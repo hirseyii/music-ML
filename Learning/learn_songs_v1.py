@@ -26,6 +26,8 @@ from scipy import interp
 # This python script will take pre-made python dictionaries with feature information about an artists songs, and do machine learning and data visualisation. When I load in songs and extract features in the other script, the data is stored in a nested dictinoary structure.
 
 # function to load in data from load_songs script.
+
+
 def prepare_data(all_data_in):
     all_features = []
     all_artists = []
@@ -72,9 +74,9 @@ def prepare_data(all_data_in):
 # being a member of each class according to the Random Forest.
 
 
-def probability_matrix(test_data, predicted_data, display=True):
+def probability_matrix(test_data, predicted_data, figure=None):
     classes = np.unique(test_data)
-    probability_matrix = np.zeros(shape=(len(classes), len(classes)))
+    matrix = np.zeros(shape=(len(classes), len(classes)))
     # loop over each class
     for i in range(len(classes)):
         # locate classes in test_data and match indices to predicted_data
@@ -82,11 +84,11 @@ def probability_matrix(test_data, predicted_data, display=True):
         indices = np.where(np.asarray(test_data) == class_name)
         class_probs = predicted_data[indices]
         # average over all samples in each class and average the prediction percentage
-        probability_matrix[:, i] = np.mean(class_probs, axis=0)
-    if display:
+        matrix[:, i] = np.mean(class_probs, axis=0)
+    if figure is not None:
         # plot a confusion-matrix-like chart
-        plt.figure()
-        plt.imshow(probability_matrix,
+        figure.add_subplot(2,2,1)
+        plt.imshow(matrix,
                    interpolation='nearest', cmap=plt.cm.Blues)
         plt.colorbar()
         tick_marks = np.arange(len(classes))
@@ -94,30 +96,30 @@ def probability_matrix(test_data, predicted_data, display=True):
         plt.yticks(tick_marks, classes)
         plt.title("Probability matrix")
         fmt = '.2f'
-        thresh = probability_matrix.max() / 2.
-        for i, j in itertools.product(range(probability_matrix.shape[0]), range(probability_matrix.shape[1])):
-            plt.text(j, i, format(probability_matrix[i, j], fmt),
+        thresh = matrix.max() / 2.
+        for i, j in itertools.product(range(matrix.shape[0]), range(matrix.shape[1])):
+            plt.text(j, i, format(matrix[i, j], fmt),
                      horizontalalignment="center",
-                     color="white" if probability_matrix[i, j] > thresh else "black")
+                     color="white" if matrix[i, j] > thresh else "black")
         plt.tight_layout()
         plt.ylabel('True label')
         plt.xlabel('Predicted label')
 
-    return probability_matrix
+    return matrix
 
 
-def plot_roc_curve(test_data, predicted_data):
+def plot_roc_curve(test_data, predicted_data, figure=None):
     classes = np.unique(test_data)
     n_classes = len(classes)
     # loop over classes
     fpr = dict()
     tpr = dict()
 
-
     for i in range(n_classes):
         class_name = classes[i]
         # get false-positive and true-positive rates from roc_curve for the class
-        fpr[i], tpr[i], _ = roc_curve(test_data, predicted_data[:, i], pos_label=class_name)
+        fpr[i], tpr[i], _ = roc_curve(
+            test_data, predicted_data[:, i], pos_label=class_name)
 
     # Compute macro-average ROC curve and ROC area
 
@@ -134,25 +136,24 @@ def plot_roc_curve(test_data, predicted_data):
     print('AUC = {0}'.format(roc_auc))
 
     # Plot ROC (Macro)
-    plt.figure()
-    plt.plot(all_fpr, mean_tpr,
-             label='macro-average ROC curve (area = {0:0.2f})'.format(roc_auc),
-             linewidth=4)
-    plt.plot([0,1], [0,1], 'k--', lw=2)
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title('Multi-class macro average ROC curve.')
-    plt.legend(loc="lower right")
-    plt.show()
-    # return AUC just in case 
+    if figure is not None:
+        figure.add_subplot(2,2,2)
+        plt.plot(all_fpr, mean_tpr,
+                 label='macro-average ROC curve (area = {0:0.2f})'.format(roc_auc),
+                 linewidth=4)
+        plt.plot([0, 1], [0, 1], 'k--', lw=2)
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title('Multi-class macro average ROC curve.')
+        plt.legend(loc="lower right")
+    # return AUC just in case
     return roc_auc
 
 
-
-            
 # Here we go, let's try some machine learning algorithms
+
 
 if __name__ == '__main__':
 
@@ -306,11 +307,11 @@ if __name__ == '__main__':
     print('--' * 30)
     print('Log-loss = {0}'.format(log_loss(artists_test, artists_pred_proba)))
 
+    # Declare a figure for plotting all subplots on
+    fig = plt.figure()
+    print(probability_matrix(artists_test, artists_pred_proba, figure=fig))
+    plot_roc_curve(artists_test, artists_pred_proba, figure=fig)
 
-    print(probability_matrix(artists_test, artists_pred_proba))
-    plot_roc_curve(artists_test, artists_pred_proba)
-    
-    
     # Now make plot of feature importances with standard deviations
     clf = pipeline.steps[1][1]  # get classifier used
     importances = pipeline.steps[1][1].feature_importances_
@@ -326,7 +327,7 @@ if __name__ == '__main__':
         feature_names_importanceorder_pruned.append(
             str(feature_names[indices[f]]))
     # Plot the feature importances of the forest
-    plt.figure()
+    fig.add_subplot(2,2,3)
     try:
         plt.title("\n".join(wrap("Feature importances pruned with {0}. n_est={1}. Trained on {2}% of data. Accuracy before={3:.3f}, accuracy after={4:.3f}".format(
             modelselect, n_estimators, train_percent * 100, accuracy_before, accuracy_after, 40))))
@@ -339,7 +340,6 @@ if __name__ == '__main__':
     plt.xticks(range(len(indices)),
                feature_names_importanceorder_pruned, rotation='vertical')
     plt.tight_layout()
-    plt.show()
 
     # see which features were removed
     no_features = len(feature_names_importanceorder_pruned)
@@ -352,7 +352,8 @@ if __name__ == '__main__':
     def plot_confusion_matrix(cm, classes,
                               normalize=True,
                               title='Confusion matrix',
-                              cmap=plt.cm.Blues):
+                              cmap=plt.cm.Blues,
+                              figure=None):
         """
         This function prints and plots the confusion matrix.
         Normalization can be applied by setting `normalize=True`.
@@ -363,32 +364,34 @@ if __name__ == '__main__':
         else:
             print('Showing confusion matrix, without normalization')
         # print(cm)
-        plt.imshow(cm, interpolation='nearest', cmap=cmap)
-        plt.title(title)
-        plt.colorbar()
-        tick_marks = np.arange(len(classes))
-        plt.xticks(tick_marks, classes, rotation=90)
-        plt.yticks(tick_marks, classes)
+        if figure is not None:
+            figure.add_subplot(2,2,4)
+            plt.imshow(cm, interpolation='nearest', cmap=cmap)
+            plt.title(title)
+            plt.colorbar()
+            tick_marks = np.arange(len(classes))
+            plt.xticks(tick_marks, classes, rotation=90)
+            plt.yticks(tick_marks, classes)
 
-        fmt = '.2f' if normalize else 'd'
-        thresh = cm.max() / 2.
-        for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
-            plt.text(j, i, format(cm[i, j], fmt),
-                     horizontalalignment="center",
-                     color="white" if cm[i, j] > thresh else "black")
+            fmt = '.2f' if normalize else 'd'
+            thresh = cm.max() / 2.
+            for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+                plt.text(j, i, format(cm[i, j], fmt),
+                         horizontalalignment="center",
+                         color="white" if cm[i, j] > thresh else "black")
 
-        plt.tight_layout()
-        plt.ylabel('True label')
-        plt.xlabel('Predicted label')
+            plt.tight_layout()
+            plt.ylabel('True label')
+            plt.xlabel('Predicted label')
 
     cnf_matrix = confusion_matrix(artists_test, artists_important_pred)
     np.set_printoptions(precision=2)
-    plt.figure()
     plot_confusion_matrix(cnf_matrix, classes=names,
-                          title='Confusion matrix, without normalization')
+                          title='Confusion matrix, without normalization',
+                          figure=fig)
     # Plot normalized confusion matrix
     # plt.figure()
     # plot_confusion_matrix(cnf_matrix, classes=names, normalize=True,
     #                      title='Normalized confusion matrix')
 
-    plt.show()
+    fig.show()
