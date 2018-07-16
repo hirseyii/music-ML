@@ -262,6 +262,36 @@ def get_features_mean(song, sr, hop_length, n_fft):
                 'avg_tonnetz_{0}'.format(dim): np.mean(tonnetz[dim, :]),
                 'std_tonnetz_{0}'.format(dim): np.std(tonnetz[dim, :])
             })
+        # ========================= Windowed features ===========================
+        # These features are calculated by computing the RMS of a time series for
+        # windows of a given width, and then calculating the standard deviation
+        # over all windows. We vary the window size between 5s and 0.5s.
+        # --------polyfeat---------
+        linear_poly = lb.feature.poly_features(y=song, sr=sr, order=1)
+        features_dict.update({
+            'wrms5_poly0_std': np.std(rms_on_chunks(linear_poly[0, :], 5, sr=sr)),
+            'wrms1_poly0_std': np.std(rms_on_chunks(linear_poly[0, :], 1, sr=sr)),
+            'wrms5_poly1_std': np.std(rms_on_chunks(linear_poly[1, :], 5, sr=sr)),
+            'wrms1_poly1_std': np.std(rms_on_chunks(linear_poly[1, :], 1, sr=sr))
+        })
+
+        # -------harmonic + percussive--------
+        features_dict.update({
+            'wrms5_harm_std': np.std(rms_on_chunks(y_harmonic, 5, sr=sr)),
+            'wrms1_harm_std': np.std(rms_on_chunks(y_harmonic, 1, sr=sr)),
+            'wrms5_perc_std': np.std(rms_on_chunks(y_percussive, 5, sr=sr)),
+            'wrms1_perc_std': np.std(rms_on_chunks(y_percussive, 5, sr=sr))
+        })
+
+
+
+
+
+
+
+
+
+
 
         combine_features = {**features_dict, **bands_dict}
         print('features extracted successfully')

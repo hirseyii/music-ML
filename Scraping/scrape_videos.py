@@ -50,7 +50,7 @@ def IsCorrectLength(yt_object, min_length=0, max_length=0):
         raise ValueError("min_length should be less than max_length dummy!")
 
     # grab length from the yt object.
-    if yt_object.length > max_length:
+    if int(yt_object.length) > max_length:
         return False
     elif max_length is None:
         return True
@@ -99,6 +99,7 @@ def ScrapeVideo(query, num_videos, save_path=None, max_upload_age=None,
     elif not force_in_title:
         base = "https://www.youtube.com/results?search_query="+query
 
+    print("URL : ", base)
     # For saving to file we need to make a directory if it doesn't exist already
     # and check the file is empty etc.
     # if the path exists check it's empty
