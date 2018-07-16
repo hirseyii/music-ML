@@ -101,7 +101,7 @@ def probability_matrix(test_data, predicted_data, figure=None):
             plt.text(j, i, format(matrix[i, j], fmt),
                      horizontalalignment="center",
                      color="white" if matrix[i, j] > thresh else "black")
-        plt.tight_layout()
+#        plt.tight_layout()
         plt.ylabel('True label')
         plt.xlabel('Predicted label')
 
@@ -339,7 +339,7 @@ if __name__ == '__main__':
     plt.xlim([-1, len(indices)])
     plt.xticks(range(len(indices)),
                feature_names_importanceorder_pruned, rotation='vertical')
-    plt.tight_layout()
+#    plt.tight_layout()
 
     # see which features were removed
     no_features = len(feature_names_importanceorder_pruned)
@@ -380,7 +380,7 @@ if __name__ == '__main__':
                          horizontalalignment="center",
                          color="white" if cm[i, j] > thresh else "black")
 
-            plt.tight_layout()
+    #        plt.tight_layout()
             plt.ylabel('True label')
             plt.xlabel('Predicted label')
 
