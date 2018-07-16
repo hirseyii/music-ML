@@ -101,7 +101,7 @@ def probability_matrix(test_data, predicted_data, figure=None):
             plt.text(j, i, format(matrix[i, j], fmt),
                      horizontalalignment="center",
                      color="white" if matrix[i, j] > thresh else "black")
-#        plt.tight_layout()
+        plt.tight_layout()
         plt.ylabel('True label')
         plt.xlabel('Predicted label')
 
@@ -148,6 +148,7 @@ def plot_roc_curve(test_data, predicted_data, figure=None):
         plt.ylabel('True Positive Rate')
         plt.title('Multi-class macro average ROC curve.')
         plt.legend(loc="lower right")
+        plt.tight_layout()
     # return AUC just in case
     return roc_auc
 
@@ -329,8 +330,9 @@ if __name__ == '__main__':
     # Plot the feature importances of the forest
     fig.add_subplot(2,2,3)
     try:
-        plt.title("\n".join(wrap("Feature importances pruned with {0}. n_est={1}. Trained on {2}% of data. Accuracy before={3:.3f}, accuracy after={4:.3f}".format(
-            modelselect, n_estimators, train_percent * 100, accuracy_before, accuracy_after, 40))))
+#        plt.title("\n".join(wrap("Feature importances pruned with {0}. n_est={1}. Trained on {2}% of data. Accuracy before={3:.3f}, accuracy after={4:.3f}".format(
+#            modelselect, n_estimators, train_percent * 100, accuracy_before, accuracy_after, 40))))
+        raise ValueError()
     except:  # having issues with a fancy title?
         plt.title('After pruning features:')
     plt.bar(range(len(indices)), importances[indices],
@@ -339,7 +341,7 @@ if __name__ == '__main__':
     plt.xlim([-1, len(indices)])
     plt.xticks(range(len(indices)),
                feature_names_importanceorder_pruned, rotation='vertical')
-#    plt.tight_layout()
+    plt.tight_layout()
 
     # see which features were removed
     no_features = len(feature_names_importanceorder_pruned)
@@ -380,7 +382,7 @@ if __name__ == '__main__':
                          horizontalalignment="center",
                          color="white" if cm[i, j] > thresh else "black")
 
-    #        plt.tight_layout()
+            plt.tight_layout()
             plt.ylabel('True label')
             plt.xlabel('Predicted label')
 
