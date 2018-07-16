@@ -394,4 +394,5 @@ if __name__ == '__main__':
     # plot_confusion_matrix(cnf_matrix, classes=names, normalize=True,
     #                      title='Normalized confusion matrix')
 
-    fig.show()
+    plt.figure(fig)
+    plt.show()
