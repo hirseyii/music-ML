@@ -52,13 +52,21 @@ def splitF(minv, maxv, songdat):
 # a function to apply the function "func" to chunks of time series data of a specified
 # width in seconds.
 # Returns func(chunk) for each chunk.
-def compute_on_chunks(func, time_series, chunk_size, sr=22050):
-    chunk_size = lb.core.time_to_samples(chunk_size, sr)
+def compute_on_chunks(func, chunk_size, y=None, S=None, sr=22050, hop_length=512, n_fft=2048):
+    # check for time series vs spectrum
+    if y is not None:
+        chunk_size = lb.core.time_to_samples(chunk_size, sr)
+        time_series = y
+    elif S is not None:
+        chunk_size = lb.core.time_to_frames(chunk_size, sr=sr, hop_length=hop_length, n_fft=n_fft)
+        time_series = S
+    else:
+        raise ValueError("compute_on_chunks() : no y or S inputted.")
     num_chunks = np.floor_divide(len(time_series), chunk_size)
     # loop over chunks and compute RMS, package into an array
     res = []
     for i in range(num_chunks):
-        chunk = time_series[i * chunk_size: (i + 1) * chunk_size]
+        chunk = time_series[i*chunk_size: (i+1)*chunk_size]
         res.append(func(chunk))
     return res
 
@@ -271,11 +279,12 @@ def get_features_mean(song, sr, hop_length, n_fft):
         # define RMS lambda expression
         def rms_func(y): return np.sqrt(np.mean(y**2))
         # --------polyfeat---------
-        linear_poly = lb.feature.poly_features(y=song, sr=sr, order=1)
-        wrms5_poly0 = compute_on_chunks(rms_func, linear_poly[0, :], 5, sr=sr)
-        wrms1_poly0 = compute_on_chunks(rms_func, linear_poly[0, :], 1, sr=sr)
-        wrms5_poly1 = compute_on_chunks(rms_func, linear_poly[1, :], 5, sr=sr)
-        wrms1_poly1 = compute_on_chunks(rms_func, linear_poly[1, :], 1, sr=sr)
+        linear_poly = lb.feature.poly_features(y=song, sr=sr, hop_length=hop_length, n_fft=n_fft, order=1)
+        wrms5_poly0 = compute_on_chunks(rms_func, 5, S=linear_poly[0, :], sr=sr, hop_length=hop_length, n_fft=n_fft)
+        wrms1_poly0 = compute_on_chunks(rms_func, 1, S=linear_poly[0, :], sr=sr, hop_length=hop_length, n_fft=n_fft)
+        wrms5_poly1 = compute_on_chunks(rms_func, 5, S=linear_poly[1, :], sr=sr, hop_length=hop_length, n_fft=n_fft)
+        wrms1_poly1 = compute_on_chunks(rms_func, 1, S=linear_poly[1, :], sr=sr, hop_length=hop_length, n_fft=n_fft)
+
         windowed_dict.update({
             'wrms5_poly0_std': np.std(wrms5_poly0),
             'wrms5_poly0_skew': skew(wrms5_poly0),
@@ -292,10 +301,10 @@ def get_features_mean(song, sr, hop_length, n_fft):
         })
 
         # -------harmonic + percussive--------
-        wrms5_harm = compute_on_chunks(rms_func, y_harmonic, 5, sr=sr)
-        wrms1_harm = compute_on_chunks(rms_func, y_harmonic, 1, sr=sr)
-        wrms5_perc = compute_on_chunks(rms_func, y_percussive, 5, sr=sr)
-        wrms1_perc = compute_on_chunks(rms_func, y_percussive, 1, sr=sr)
+        wrms5_harm = compute_on_chunks(rms_func, 5, y=y_harmonic, sr=sr, hop_length=hop_length, n_fft=n_fft)
+        wrms1_harm = compute_on_chunks(rms_func, 1, y=y_harmonic, sr=sr, hop_length=hop_length, n_fft=n_fft)
+        wrms5_perc = compute_on_chunks(rms_func, 5, y=y_percussive, sr=sr, hop_length=hop_length, n_fft=n_fft)
+        wrms1_perc = compute_on_chunks(rms_func, 1, y=y_percussive, sr=sr, hop_length=hop_length, n_fft=n_fft)
         windowed_dict.update({
             'wrms5_harm_std': np.std(wrms5_harm),
             'wrms5_harm_skew': skew(wrms5_harm),
@@ -400,7 +409,7 @@ if __name__ == "__main__":
     # create song database, songdb:
     songname_tmp = []
     songpath_tmp = []
-    load_path_root = '/raid/scratch/sen/adverts/'
+    load_path_root = '/raid/scratch/sen/song_lib/'
     load_filename = sys.argv[1]   # take command line arg for filename
     path = load_path_root + load_filename + '/'
     print(path)
