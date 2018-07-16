@@ -4,6 +4,9 @@ Jun 18
 """
 # A script to scrape youtube for videos given a query. Adapted from work
 # done previously for A. Clarke.
+# This script requires at least PyTube 2.2.3 which is available via the
+# PyTube Github repo. This is so that we can make use of the youtube.length
+# attribute for filtering by duration.
 from bs4 import BeautifulSoup as bs
 import requests
 import os
@@ -185,6 +188,9 @@ def ScrapeVideo(query, num_videos, save_path=None, max_upload_age=None,
 
 
 if __name__ == '__main__':
+
+    print("pytube version : ", pytube.__version__)
+    
     ScrapeVideo('chanel advert', 100, save_path='/raid/scratch/sen/adverts/perfume/', max_upload_age=5)
     ScrapeVideo('dior advert', 100, save_path='/raid/scratch/sen/adverts/perfume/', max_upload_age=5, check_directory=False)
     ScrapeVideo('gucci perfume advert', 100, save_path='/raid/scratch/sen/adverts/perfume/', max_upload_age=5, check_directory=False)
