@@ -107,7 +107,9 @@ def probability_matrix(test_data, predicted_data, figure=None):
 
     return matrix
 
-    
+
+# A function to compute and plot a ROC curve. Makes use of the "roc_curve"
+# function provided by sklearn.
 def plot_roc_curve(test_data, predicted_data, figure=None):
     classes = np.unique(test_data)
     n_classes = len(classes)
@@ -152,9 +154,42 @@ def plot_roc_curve(test_data, predicted_data, figure=None):
     # return AUC just in case
     return roc_auc
 
+# plot confusion matrix - code adapted from sklearn manual page
+# This function prints and plots the confusion matrix.
+# Normalization can be applied by setting `normalize=True`.
+def plot_confusion_matrix(test_data, predicted_data, normalize=False figure=None):
+    classes = np.unique(test_data)
+    # compute confusion matrix
+    cm = confusion_matrix(test_data, predicted_data)
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        print("Showing normalized confusion matrix")
+    else:
+        print('Showing confusion matrix, without normalization')
+    # print(cm)
+    if figure is not None:
+        figure.add_subplot(2,2,4)
+        plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
+        plt.title('Confusion matrix')
+        plt.colorbar()
+        tick_marks = np.arange(len(classes))
+        plt.xticks(tick_marks, classes, rotation=90)
+        plt.yticks(tick_marks, classes)
+
+        fmt = '.2f' if normalize else 'd'
+        thresh = cm.max() / 2.
+        for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+            plt.text(j, i, format(cm[i, j], fmt),
+                     horizontalalignment="center",
+                     color="white" if cm[i, j] > thresh else "black")
+
+        plt.tight_layout()
+        plt.ylabel('True label')
+        plt.xlabel('Predicted label')
+
+
 
 # Here we go, let's try some machine learning algorithms
-
 
 if __name__ == '__main__':
 
@@ -350,51 +385,12 @@ if __name__ == '__main__':
     print('features used were:')
     print(set(feature_names_flatten) - set(feature_names_importanceorder_pruned))
 
-    # plot confusion matrix - code adapted from sklearn manual page
-    def plot_confusion_matrix(cm, classes,
-                              normalize=False,
-                              title='Confusion matrix',
-                              cmap=plt.cm.Blues,
-                              figure=None):
-        """
-        This function prints and plots the confusion matrix.
-        Normalization can be applied by setting `normalize=True`.
-        """
-        if normalize:
-            cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-            print("Showing normalized confusion matrix")
-        else:
-            print('Showing confusion matrix, without normalization')
-        # print(cm)
-        if figure is not None:
-            figure.add_subplot(2,2,4)
-            plt.imshow(cm, interpolation='nearest', cmap=cmap)
-            plt.title(title)
-            plt.colorbar()
-            tick_marks = np.arange(len(classes))
-            plt.xticks(tick_marks, classes, rotation=90)
-            plt.yticks(tick_marks, classes)
-
-            fmt = '.2f' if normalize else 'd'
-            thresh = cm.max() / 2.
-            for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
-                plt.text(j, i, format(cm[i, j], fmt),
-                         horizontalalignment="center",
-                         color="white" if cm[i, j] > thresh else "black")
-
-            plt.tight_layout()
-            plt.ylabel('True label')
-            plt.xlabel('Predicted label')
-
+    # Compute and plot confusion matrix
     cnf_matrix = confusion_matrix(artists_test, artists_important_pred)
-    np.set_printoptions(precision=2)
+    #??? np.set_printoptions(precision=2)
     plot_confusion_matrix(cnf_matrix, classes=names,
                           title='Confusion matrix, without normalization',
                           figure=fig)
-    # Plot normalized confusion matrix
-    # plt.figure()
-    # plot_confusion_matrix(cnf_matrix, classes=names, normalize=True,
-    #                      title='Normalized confusion matrix')
 
     plt.figure(fig.number)
     plt.show()
