@@ -107,7 +107,7 @@ def probability_matrix(test_data, predicted_data, figure=None):
 
     return matrix
 
-
+    
 def plot_roc_curve(test_data, predicted_data, figure=None):
     classes = np.unique(test_data)
     n_classes = len(classes)
@@ -247,10 +247,10 @@ if __name__ == '__main__':
     accuracy_before = (accuracy_score(artists_test, artists_pred))
 
     # Could check classification report here but we'll do this later after feature pruning
-    # print('--'*30)
-    #print('Random Forest report before feature pruning:')
-    #print(classification_report(artists_test, forest.predict(features_test),target_names=names))
-    # print('--'*30)
+    print('--'*30)
+    print('Random Forest report before feature pruning:')
+    print(classification_report(artists_test, forest.predict(features_test),target_names=names))
+    print('--'*30)
 
     # you could loop over trees to find out how many before you accuracy maxes output
     '''
@@ -282,12 +282,12 @@ if __name__ == '__main__':
     # an important note is that the pipeline automatically creates new feature data after removing pruned features.
 
     # first choose a model to prune features, then put it in pipeline - there are many we could try
-    lsvc = LinearSVC(C=0.01, penalty="l1", dual=False).fit(
+    lsvc = LinearSVC(C=0.9, penalty="l1", dual=False).fit(
         features_train, artists_train)
     rfc = RandomForestClassifier(n_estimators=n_estimators, random_state=2)
     modelselect = 'rfc'  # set accordingly
     pipeline = Pipeline([
-        ('feature_selection', SelectFromModel(rfc)),
+        ('feature_selection', SelectFromModel(lsvc)),
         ('classification', RandomForestClassifier(
             n_estimators=n_estimators, random_state=2, class_weight='balanced'))
     ])
@@ -352,7 +352,7 @@ if __name__ == '__main__':
 
     # plot confusion matrix - code adapted from sklearn manual page
     def plot_confusion_matrix(cm, classes,
-                              normalize=True,
+                              normalize=False,
                               title='Confusion matrix',
                               cmap=plt.cm.Blues,
                               figure=None):
