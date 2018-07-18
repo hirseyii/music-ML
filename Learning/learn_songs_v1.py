@@ -74,7 +74,7 @@ def prepare_data(all_data_in):
 # being a member of each class according to the Random Forest.
 
 
-def probability_matrix(test_data, predicted_data, figure=None):
+def plot_probability_matrix(test_data, predicted_data, figure=None):
     classes = np.unique(test_data)
     matrix = np.zeros(shape=(len(classes), len(classes)))
     # loop over each class
@@ -101,7 +101,7 @@ def probability_matrix(test_data, predicted_data, figure=None):
             plt.text(j, i, format(matrix[i, j], fmt),
                      horizontalalignment="center",
                      color="white" if matrix[i, j] > thresh else "black")
-        plt.tight_layout()
+      #  plt.tight_layout()
         plt.ylabel('True label')
         plt.xlabel('Predicted label')
 
@@ -150,14 +150,15 @@ def plot_roc_curve(test_data, predicted_data, figure=None):
         plt.ylabel('True Positive Rate')
         plt.title('Multi-class macro average ROC curve.')
         plt.legend(loc="lower right")
-        plt.tight_layout()
+     #   plt.tight_layout()
     # return AUC just in case
     return roc_auc
+
 
 # plot confusion matrix - code adapted from sklearn manual page
 # This function prints and plots the confusion matrix.
 # Normalization can be applied by setting `normalize=True`.
-def plot_confusion_matrix(test_data, predicted_data, normalize=False figure=None):
+def plot_confusion_matrix(test_data, predicted_data, normalize=False, figure=None):
     classes = np.unique(test_data)
     # compute confusion matrix
     cm = confusion_matrix(test_data, predicted_data)
@@ -183,12 +184,32 @@ def plot_confusion_matrix(test_data, predicted_data, normalize=False figure=None
                      horizontalalignment="center",
                      color="white" if cm[i, j] > thresh else "black")
 
-        plt.tight_layout()
+     #   plt.tight_layout()
         plt.ylabel('True label')
         plt.xlabel('Predicted label')
 
 
+# A function to plot feature importances
+def plot_feature_importances(importances, feature_names, std, figure=None, title="Feature Importances"):
+    indices = np.argsort(importances)[::-1]
+    # get feature names
+    feature_names_importanceorder = []
+    for f in range(len(indices)):
+        feature_names_importanceorder.append(str(feature_names[indices[f]]))
 
+    # Plot it yo
+    if figure is not None:
+        figure.add_subplot(2, 2, 3)
+    else:
+        plt.figure()
+
+    plt.title(title)
+    plt.bar(range(len(indices)), importances[indices], color='r', yerr=std[indices], align='center')
+    plt.xticks(range(len(indices)), feature_names_importanceorder, rotation='vertical')
+    plt.xlim([-1, len(indices)])
+  #  plt.tight_layout()
+
+    return feature_names_importanceorder
 # Here we go, let's try some machine learning algorithms
 
 if __name__ == '__main__':
@@ -278,15 +299,33 @@ if __name__ == '__main__':
         n_estimators=n_estimators, random_state=2, class_weight='balanced')
     forest.fit(features_train, artists_train)
     artists_pred = forest.predict(features_test)
+    artists_proba = forest.predict_proba(features_test)
     # we'll print this later as a comparison
     accuracy_before = (accuracy_score(artists_test, artists_pred))
 
     # Could check classification report here but we'll do this later after feature pruning
     print('--'*30)
     print('Random Forest report before feature pruning:')
-    print(classification_report(artists_test, forest.predict(features_test),target_names=names))
+    print(classification_report(artists_test, forest.predict(features_test), target_names=names))
     print('--'*30)
 
+    # Plots before pruning!
+    fig_unpruned = plt.figure()
+    plot_probability_matrix(artists_test, artists_proba, figure=fig_unpruned)
+    plot_roc_curve(artists_test, artists_proba, figure=fig_unpruned)
+    plot_confusion_matrix(artists_test, artists_pred, figure=fig_unpruned)
+
+    # plot importances unpruned
+    
+    importances_unpruned = forest.feature_importances_
+    std_unpruned = np.std([tree.feature_importances_ for tree in forest.estimators_], axis=0)
+    indices_unpruned = np.argsort(importances_unpruned)[::-1]
+    
+    title_unpruned = """n_est={0}, train-test={1}%, Accuracy={2:.3f}""".format(n_estimators, train_percent*100, accuracy_before, 40)
+    plot_feature_importances(importances_unpruned, feature_names, std_unpruned, figure=fig_unpruned, title=title_unpruned)
+
+    
+    
     # you could loop over trees to find out how many before you accuracy maxes output
     '''
     #how many trees are required? loop through values to find out
@@ -311,16 +350,16 @@ if __name__ == '__main__':
     plt.show()
     '''
 
-    ######################################################
+    ##############################################################################
     # Now lets repeat using a more streamlined pipeline to first remove unimportant features, then run a classifier on remaining ones.
     # we may want to try different classifiers and feature selection processes
     # an important note is that the pipeline automatically creates new feature data after removing pruned features.
 
     # first choose a model to prune features, then put it in pipeline - there are many we could try
-    lsvc = LinearSVC(C=0.9, penalty="l1", dual=False).fit(
+    lsvc = LinearSVC(C=0.5, penalty="l1", dual=False).fit(
         features_train, artists_train)
     rfc = RandomForestClassifier(n_estimators=n_estimators, random_state=2)
-    modelselect = 'rfc'  # set accordingly
+    modelselect = 'lsvc'  # set accordingly
     pipeline = Pipeline([
         ('feature_selection', SelectFromModel(lsvc)),
         ('classification', RandomForestClassifier(
@@ -330,7 +369,7 @@ if __name__ == '__main__':
     pipeline.fit(features_train, artists_train)
     # check accuracy and other metrics:
     artists_important_pred = pipeline.predict(features_test)
-    artists_pred_proba = pipeline.predict_proba(features_test)
+    artists_important_proba = pipeline.predict_proba(features_test)
     accuracy_after = (accuracy_score(artists_test, artists_important_pred))
 
     print('accuracy before pruning features: {0:.2f}'.format(accuracy_before))
@@ -341,42 +380,28 @@ if __name__ == '__main__':
     print(classification_report(artists_test,
                                 artists_important_pred, target_names=names))
     print('--' * 30)
-    print('Log-loss = {0}'.format(log_loss(artists_test, artists_pred_proba)))
+    print('Log-loss = {0}'.format(log_loss(artists_test, artists_important_proba)))
 
-    # Declare a figure for plotting all subplots on
-    fig = plt.figure()
-    print(probability_matrix(artists_test, artists_pred_proba, figure=fig))
-    plot_roc_curve(artists_test, artists_pred_proba, figure=fig)
+    # Declare a figure for plotting all subplots on plot probability matrix,
+    # roc curve, and confusion matrix. (The order of subplots is established
+    # inside each function that takes "fig" as an argument
+    fig_pruned = plt.figure()
+    plot_probability_matrix(artists_test, artists_important_proba, figure=fig_pruned)
+    plot_roc_curve(artists_test, artists_important_proba, figure=fig_pruned)
+    plot_confusion_matrix(artists_test, artists_important_pred, figure=fig_pruned)
 
-    # Now make plot of feature importances with standard deviations
+    
+    # Now make get feature importances with standard deviations
     clf = pipeline.steps[1][1]  # get classifier used
-    importances = pipeline.steps[1][1].feature_importances_
-    std = np.std([tree.feature_importances_ for tree in clf.estimators_],
-                 axis=0)
-    indices = np.argsort(importances)[::-1]
-    # Now we've pruned bad features, create new feature_names_importanceorder_pruned array
-    # Print the feature ranking if you want, but graph is nicer
-    #print("Feature ranking:")
-    feature_names_importanceorder_pruned = []
-    for f in range(len(indices)):
-        #print("%d. feature %d (%f) {0}" % (f + 1, indices[f], importances[indices[f]]), feature_names[indices[f]])
-        feature_names_importanceorder_pruned.append(
-            str(feature_names[indices[f]]))
-    # Plot the feature importances of the forest
-    fig.add_subplot(2,2,3)
-    try:
-#        plt.title("\n".join(wrap("Feature importances pruned with {0}. n_est={1}. Trained on {2}% of data. Accuracy before={3:.3f}, accuracy after={4:.3f}".format(
-#            modelselect, n_estimators, train_percent * 100, accuracy_before, accuracy_after, 40))))
-        raise ValueError()
-    except:  # having issues with a fancy title?
-        plt.title('After pruning features:')
-    plt.bar(range(len(indices)), importances[indices],
-            color="r", yerr=std[indices], align="center")
-    plt.xticks(range(len(indices)), indices)
-    plt.xlim([-1, len(indices)])
-    plt.xticks(range(len(indices)),
-               feature_names_importanceorder_pruned, rotation='vertical')
-    plt.tight_layout()
+    importances_pruned = pipeline.steps[1][1].feature_importances_
+    std_pruned = np.std([tree.feature_importances_ for tree in clf.estimators_], axis=0)
+    indices_pruned = np.argsort(importances_pruned)[::-1]
+    # Construct title
+    title_long = """Features pruned by {0}. n_est={1}, train-test={2}%
+    , Accuracy - before={3:.3f}, after={4:,.3f}""".format(
+        modelselect, n_estimators, train_percent*100, accuracy_before, accuracy_after, 40)
+    # grab the pruned feature names from plot_feature_importances, and plot the chart
+    feature_names_importanceorder_pruned = plot_feature_importances(importances_pruned, feature_names, std_pruned, figure=fig_pruned, title=title_long)
 
     # see which features were removed
     no_features = len(feature_names_importanceorder_pruned)
@@ -385,12 +410,21 @@ if __name__ == '__main__':
     print('features used were:')
     print(set(feature_names_flatten) - set(feature_names_importanceorder_pruned))
 
-    # Compute and plot confusion matrix
-    cnf_matrix = confusion_matrix(artists_test, artists_important_pred)
     #??? np.set_printoptions(precision=2)
-    plot_confusion_matrix(cnf_matrix, classes=names,
-                          title='Confusion matrix, without normalization',
-                          figure=fig)
+    
 
-    plt.figure(fig.number)
+    plt.figure(fig_pruned.number)
+    # The following values adjust padding etc. of the subplots.
+    # These optimise the layout for a 16:9 display with the plots arranged
+    # as they are in the functions provided. The easiest way to adjust these
+    # is by playing around in an interactive figure window (if possible) until
+    # you get the layout you want and then copying the numbers down. Sadly
+    # tight_layout makes the plots far too small to be useful.
+    plt.subplots_adjust(top=0.92,
+                        bottom=0.20,
+                        left=0.10,
+                        right=0.88,
+                        hspace=0.60,
+                        wspace=0.30)
+   # plt.tight_layout()
     plt.show()
