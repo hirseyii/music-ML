@@ -12,6 +12,7 @@ import requests
 import os
 import time
 import datetime
+import pytube
 from pytube import YouTube
 
 
@@ -190,7 +191,7 @@ def ScrapeVideo(query, num_videos, save_path=None, max_upload_age=None,
 if __name__ == '__main__':
 
     print("pytube version : ", pytube.__version__)
-    
+    """
     ScrapeVideo('chanel advert', 100, save_path='/raid/scratch/sen/adverts/perfume/', max_upload_age=5)
     ScrapeVideo('dior advert', 100, save_path='/raid/scratch/sen/adverts/perfume/', max_upload_age=5, check_directory=False)
     ScrapeVideo('gucci perfume advert', 100, save_path='/raid/scratch/sen/adverts/perfume/', max_upload_age=5, check_directory=False)
@@ -208,3 +209,15 @@ if __name__ == '__main__':
     ScrapeVideo('audi advert', 100, save_path='/raid/scratch/sen/adverts/cars/', max_upload_age=5, check_directory=False)
     ScrapeVideo('honda advert', 100, save_path='/raid/scratch/sen/adverts/cars/', max_upload_age=5, check_directory=False)
     ScrapeVideo('vw advert', 100, save_path='/raid/scratch/sen/adverts/cars/', max_upload_age=5, check_directory=False)
+    """
+    ScrapeVideo('hsbc advert', 100, save_path='/raid/scratch/sen/adverts/banks/', max_upload_age=5)
+    ScrapeVideo('scottish widows advert', 100, save_path='/raid/scratch/sen/adverts/banks/', max_upload_age=5, check_directory=False)
+    ScrapeVideo('halifax advert', 100, save_path='/raid/scratch/sen/adverts/banks/', max_upload_age=5, check_directory=False)
+    ScrapeVideo('nationwide advert', 100, save_path='/raid/scratch/sen/adverts/banks/', max_upload_age=5, check_directory=False)
+    ScrapeVideo('barclays advert', 100, save_path='/raid/scratch/sen/adverts/banks/', max_upload_age=5, check_directory=False)
+
+    ScrapeVideo('sainsburys advert', 100, save_path='/raid/scratch/sen/adverts/supermarkets/', max_upload_age=5, check_directory=False)
+    ScrapeVideo('tesco advert', 100, save_path='/raid/scratch/sen/adverts/supermarkets/', max_upload_age=5, check_directory=False)
+    ScrapeVideo('asda advert', 100, save_path='/raid/scratch/sen/adverts/supermarkets/', max_upload_age=5, check_directory=False)
+    ScrapeVideo('waitrose advert', 100, save_path='/raid/scratch/sen/adverts/supermarkets/', max_upload_age=5, check_directory=False)
+    ScrapeVideo('morrisons advert', 100, save_path='/raid/scratch/sen/adverts/supermarkets/', max_upload_age=5, check_directory=False)
