@@ -19,6 +19,7 @@ from sklearn.metrics import confusion_matrix
 import sys
 import glob
 import datetime
+import matplotlib
 import matplotlib.cm as cm
 from textwrap import wrap
 import scipy.stats as stats
@@ -232,7 +233,20 @@ def save_figs(figures_dict, meta, path_to_dir):
         filepath = path + '/' + filename
         # switch current figure
         plt.figure(fig.number)
-        plt.savefig(filepath)
+        # The following values adjust padding etc. of the subplots.
+        # These optimise the layout for a 16:9 display with the plots arranged
+        # as they are in the functions provided. The easiest way to adjust these
+        # is by playing around in an interactive figure window (if possible) until
+        # you get the layout you want and then copying the numbers down. Sadly
+        # tight_layout makes the plots far too small to be useful.
+        plt.subplots_adjust(top=0.92,
+                            bottom=0.20,
+                            left=0.10,
+                            right=0.88,
+                            hspace=0.60,
+                            wspace=0.30)
+
+        plt.savefig(filepath, bbox_inches='tight')
 
     # save metadata
     with open(path + '/' + 'metadata.log', 'w') as f:
@@ -244,6 +258,10 @@ def save_figs(figures_dict, meta, path_to_dir):
 
 if __name__ == '__main__':
 
+    # Set matplotlib params
+    # This changes the size of created figures. Adjust for your display if necessary
+    matplotlib.rcParams['figure.figsize'] = [18, 9]
+    
     # load in all data saved from the feature extraction, *.pkl. Initiate figure and select colours
     path = sys.argv[1]  # command line input is path to data
     all_data = glob.glob(path + '/*_data.pkl')  # load in as many as you want
@@ -450,20 +468,7 @@ if __name__ == '__main__':
     
 
     # plt.figure(fig_pruned.number)
-    # The following values adjust padding etc. of the subplots.
-    # These optimise the layout for a 16:9 display with the plots arranged
-    # as they are in the functions provided. The easiest way to adjust these
-    # is by playing around in an interactive figure window (if possible) until
-    # you get the layout you want and then copying the numbers down. Sadly
-    # tight_layout makes the plots far too small to be useful.
-    plt.subplots_adjust(top=0.92,
-                        bottom=0.20,
-                        left=0.10,
-                        right=0.88,
-                        hspace=0.60,
-                        wspace=0.30)
-   # plt.tight_layout()
-   # plt.show()
+    # plt.tight_layout()
 
     # create metadata
     meta = ('music-ML metadata.log\n'
@@ -480,4 +485,5 @@ if __name__ == '__main__':
     figures_dict = {'rnd_forest_unpruned_graphs': fig_unpruned, 'rnd_forest_pruned_graphs': fig_pruned}
     savedir = '/raid/scratch/sen/learning_results/sklearn'
     save_figs(figures_dict, meta, savedir)
-    
+
+#    plt.show()
