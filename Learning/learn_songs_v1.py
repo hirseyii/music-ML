@@ -1,4 +1,6 @@
-from Loading.load_songs import *
+from Loading.load_songs import load_obj
+import numpy as np
+import itertools
 from sklearn import svm
 from sklearn.svm import SVC
 from sklearn.cluster import KMeans
@@ -16,11 +18,13 @@ import sklearn
 from sklearn.model_selection import cross_validate
 from sklearn import preprocessing
 from sklearn.metrics import confusion_matrix
+import os
 import sys
 import glob
 import datetime
 import matplotlib
 import matplotlib.cm as cm
+import matplotlib.pyplot as plt
 from textwrap import wrap
 import scipy.stats as stats
 from scipy import interp
@@ -30,7 +34,7 @@ from scipy import interp
 # function to load in data from load_songs script.
 
 
-def prepare_data(all_data_in):
+def prepare_data(all_data_in, data_path):
     all_features = []
     all_artists = []
     for artist in all_data_in:  # As i did feature extraction on each artist seperately, loop through them. Create lists of song names and features
@@ -45,7 +49,7 @@ def prepare_data(all_data_in):
             songfeat.append(data[song])
             songname.append(song)
             artists.append(artist.replace('_data.pkl', '').replace('all_', '').replace(
-                path, '').replace('_data_testsplit.pkl', '').replace('_data_trainsplit.pkl', ''))
+                data_path, '').replace('_data_testsplit.pkl', '').replace('_data_trainsplit.pkl', ''))
             #######################################################
             nan_keys = dict()
             items = data[song].items()
@@ -71,16 +75,15 @@ def prepare_data(all_data_in):
             songfeat[0].keys())  # will be all our feature names
         features = []  # will be all our raw feature data
         for i in range(len(songfeat)):
-            # take the songfeat dictionary and grab only the values (keys are just text labels for each feature)
+            # take the songfeat dictionary and grab only the values
+            # (keys are just text labels for each feature)
             features.append(list(songfeat[i].values()))
 
         # create master lists of features and artists for the machine learning later
         all_features += features
         all_artists += artists
     return all_features, all_artists, feature_names
-
-
-"""    
+"""
 We want to produce a chart showing the mean prediction probabilities
 for each class. This function plots a confusion-matrix-like chart by
 averaging over all samples in the class, the probabilities of the sample
@@ -282,7 +285,7 @@ if __name__ == '__main__':
 
     # load in artists with loads of songs - may or may not be splitting songs, try except:
     # feature names is same for all runs when unpacked (saves loading in a .pkl again)
-    all_features, all_artists, feature_names = prepare_data(all_data)
+    all_features, all_artists, feature_names = prepare_data(all_data, path)
     # Split our data into a training and testing data sets
     train_percent = float(sys.argv[2])
     # Test/train split as usual on artists with many songs
