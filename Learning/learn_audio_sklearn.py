@@ -46,7 +46,17 @@ def prepare_data(all_data_in):
             songname.append(song)
             artists.append(artist.replace('_data.pkl', '').replace('all_', '').replace(
                 path, '').replace('_data_testsplit.pkl', '').replace('_data_trainsplit.pkl', ''))
+            #######################################################
+            nan_keys = dict()
+            items = data[song].items()
+            for elem in items:
+                if elem[1] is None or np.isnan(elem[1]) or np.isinf(elem[1]):
+                    nan_keys.update({elem[0]: elem[1]})
+            if nan_keys:
+                print(song)
+                print(nan_keys)
 
+            #######################################################
         # if we want to modify the features, could do it here
         # e.g. removing some features
         '''
@@ -69,13 +79,13 @@ def prepare_data(all_data_in):
         all_artists += artists
     return all_features, all_artists, feature_names
 
-# ===============================================================
-# We want to produce a chart showing the mean prediction probabilities
-# for each class. This function plots a confusion-matrix-like chart by
-# averaging over all samples in the class, the probabilities of the sample
-# being a member of each class according to the Random Forest.
 
-
+"""    
+We want to produce a chart showing the mean prediction probabilities
+for each class. This function plots a confusion-matrix-like chart by
+averaging over all samples in the class, the probabilities of the sample
+being a member of each class according to the Random Forest.
+"""
 def plot_probability_matrix(test_data, predicted_data, figure=None):
     classes = np.unique(test_data)
     matrix = np.zeros(shape=(len(classes), len(classes)))
@@ -218,8 +228,9 @@ def plot_feature_importances(importances, feature_names, std, figure=None, title
 # using the current date & time. Figures dict should use filename : figureobject pairs.
 # Also writes "meta" string containing metadata about the learning and data, to a metadata.log
 # file.
-def save_figs(figures_dict, meta, path_to_dir):
-    dir_name = datetime.datetime.now().isoformat()
+def save_figs(figures_dict, meta, path_to_dir, dir_name=None):
+    if dir_name is None:
+        dir_name = datetime.datetime.now().isoformat()
     path = path_to_dir + '/' + dir_name
     # check if the directory exists
     if not os.path.exists(path):
@@ -410,7 +421,8 @@ if __name__ == '__main__':
     # an important note is that the pipeline automatically creates new feature data after removing pruned features.
 
     # first choose a model to prune features, then put it in pipeline - there are many we could try
-    lsvc = LinearSVC(C=0.5, penalty="l1", dual=False).fit(
+    feature_selection_threshold = 0.1
+    lsvc = LinearSVC(C=feature_selection_threshold, penalty="l1", dual=False).fit(
         features_train, artists_train)
     rfc = RandomForestClassifier(n_estimators=n_estimators, random_state=2)
     modelselect = 'lsvc'  # set accordingly
@@ -483,7 +495,8 @@ if __name__ == '__main__':
 
     # construct figures dict
     figures_dict = {'rnd_forest_unpruned_graphs': fig_unpruned, 'rnd_forest_pruned_graphs': fig_pruned}
-    savedir = '/raid/scratch/sen/learning_results/sklearn'
-    save_figs(figures_dict, meta, savedir)
+    savedir = '/raid/scratch/sen/learning_results/sklearn/LSVC/'
+    dir_name = '{0}_selection_threshold'.format(feature_selection_threshold)
+    save_figs(figures_dict, meta, savedir, dir_name)
 
-#    plt.show()
+    plt.show()
