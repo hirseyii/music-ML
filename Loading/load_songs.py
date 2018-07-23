@@ -68,7 +68,9 @@ def compute_on_chunks(func, chunk_size, y=None, S=None, sr=22050, hop_length=512
     for i in range(num_chunks):
         chunk = time_series[i*chunk_size: (i+1)*chunk_size]
         res.append(func(chunk))
+
     return res
+
 
 
 # This is the main function which gets features from the songs. Most values
@@ -280,41 +282,41 @@ def get_features_mean(song, sr, hop_length, n_fft):
         def rms_func(y): return np.sqrt(np.mean(y**2))
         # --------polyfeat---------
         linear_poly = lb.feature.poly_features(y=song, sr=sr, hop_length=hop_length, n_fft=n_fft, order=1)
-        wrms5_poly0 = compute_on_chunks(rms_func, 5, S=linear_poly[0, :], sr=sr, hop_length=hop_length, n_fft=n_fft)
+        wrms3_poly0 = compute_on_chunks(rms_func, 3, S=linear_poly[0, :], sr=sr, hop_length=hop_length, n_fft=n_fft)
         wrms1_poly0 = compute_on_chunks(rms_func, 1, S=linear_poly[0, :], sr=sr, hop_length=hop_length, n_fft=n_fft)
-        wrms5_poly1 = compute_on_chunks(rms_func, 5, S=linear_poly[1, :], sr=sr, hop_length=hop_length, n_fft=n_fft)
+        wrms3_poly1 = compute_on_chunks(rms_func, 3, S=linear_poly[1, :], sr=sr, hop_length=hop_length, n_fft=n_fft)
         wrms1_poly1 = compute_on_chunks(rms_func, 1, S=linear_poly[1, :], sr=sr, hop_length=hop_length, n_fft=n_fft)
 
         windowed_dict.update({
-            'wrms5_poly0_std': np.std(wrms5_poly0),
-            'wrms5_poly0_skew': skew(wrms5_poly0),
-            'wrms5_poly0_kurtosis': kurtosis(wrms5_poly0),
+            'wrms3_poly0_std': np.std(wrms3_poly0),
+            'wrms3_poly0_skew': skew(wrms3_poly0),
+            'wrms3_poly0_kurtosis': kurtosis(wrms3_poly0),
             'wrms1_poly0_std': np.std(wrms1_poly0),
             'wrms1_poly0_skew': skew(wrms1_poly0),
             'wrms1_poly0_kurtosis': kurtosis(wrms1_poly0),
-            'wrms5_poly1_std': np.std(wrms5_poly1),
-            'wrms5_poly1_skew': skew(wrms5_poly1),
-            'wrms5_poly1_kurtosis': kurtosis(wrms5_poly1),
+            'wrms3_poly1_std': np.std(wrms3_poly1),
+            'wrms3_poly1_skew': skew(wrms3_poly1),
+            'wrms3_poly1_kurtosis': kurtosis(wrms3_poly1),
             'wrms1_poly1_std': np.std(wrms1_poly1),
             'wrms1_poly1_skew': skew(wrms1_poly1),
             'wrms1_poly1_kurtosis': kurtosis(wrms1_poly1)
         })
 
         # -------harmonic + percussive--------
-        wrms5_harm = compute_on_chunks(rms_func, 5, y=y_harmonic, sr=sr, hop_length=hop_length, n_fft=n_fft)
+        wrms3_harm = compute_on_chunks(rms_func, 3, y=y_harmonic, sr=sr, hop_length=hop_length, n_fft=n_fft)
         wrms1_harm = compute_on_chunks(rms_func, 1, y=y_harmonic, sr=sr, hop_length=hop_length, n_fft=n_fft)
-        wrms5_perc = compute_on_chunks(rms_func, 5, y=y_percussive, sr=sr, hop_length=hop_length, n_fft=n_fft)
+        wrms3_perc = compute_on_chunks(rms_func, 3, y=y_percussive, sr=sr, hop_length=hop_length, n_fft=n_fft)
         wrms1_perc = compute_on_chunks(rms_func, 1, y=y_percussive, sr=sr, hop_length=hop_length, n_fft=n_fft)
         windowed_dict.update({
-            'wrms5_harm_std': np.std(wrms5_harm),
-            'wrms5_harm_skew': skew(wrms5_harm),
-            'wrms5_harm_kurtosis': kurtosis(wrms5_harm),
+            'wrms3_harm_std': np.std(wrms3_harm),
+            'wrms3_harm_skew': skew(wrms3_harm),
+            'wrms3_harm_kurtosis': kurtosis(wrms3_harm),
             'wrms1_harm_std': np.std(wrms1_harm),
             'wrms1_harm_skew': skew(wrms1_harm),
             'wrms1_harm_kurtosis': kurtosis(wrms1_harm),
-            'wrms5_perc_std': np.std(wrms5_perc),
-            'wrms5_perc_skew': skew(wrms5_perc),
-            'wrms5_perc_kurtosis': kurtosis(wrms5_perc),
+            'wrms3_perc_std': np.std(wrms3_perc),
+            'wrms3_perc_skew': skew(wrms3_perc),
+            'wrms3_perc_kurtosis': kurtosis(wrms3_perc),
             'wrms1_perc_std': np.std(wrms1_perc),
             'wrms1_perc_skew': skew(wrms1_perc),
             'wrms1_perc_kurtosis': kurtosis(wrms1_perc),
@@ -328,7 +330,8 @@ def get_features_mean(song, sr, hop_length, n_fft):
     # Catch fails
     except Exception as ex:
         print('.'*20+'FAILED'+'.'*20)
-        print('.'*40)
+        print(ex)
+        print('.'*46)
 
 
 # a function to look at beat tracking... not used in machine learning yet,
@@ -409,7 +412,7 @@ if __name__ == "__main__":
     # create song database, songdb:
     songname_tmp = []
     songpath_tmp = []
-    load_path_root = '/raid/scratch/sen/song_lib/'
+    load_path_root = '/raid/scratch/sen/adverts/'
     load_filename = sys.argv[1]   # take command line arg for filename
     path = load_path_root + load_filename + '/'
     print(path)
