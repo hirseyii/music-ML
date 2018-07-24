@@ -15,8 +15,39 @@ import tensorflow as tf
 from tensorflow import keras
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
 from Learning.learn_audio_sklearn import prepare_data
+from Learning.learn_audio_sklearn import plot_probability_matrix
+from Learning.learn_audio_sklearn import plot_roc_curve, plot_confusion_matrix
 
+
+"""
+A function to plot accuracy and loss of training and
+validation data as a function of epoch. Unlike functions
+from the Learning module, it returns a figure rather than
+supporting figure pass-through since these graphs should only
+be plotted on a single figure
+"""
+
+
+def plot_nn_history(fit_history):
+    fig = plt.figure()
+    fig.add_subplot(1,2,1)
+    plt.plot(fit_history.history['acc'])
+    plt.plot(fit_history.history['val_acc'])
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    # summarize history for loss
+    fig.add_subplot(1,2,2)
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    return fig
 
 
 # =================== main ======================
@@ -61,18 +92,43 @@ if __name__ == '__main__':
     x_train = scaler.transform(x_train)
     x_test = scaler.transform(x_test)
 
+    # number of neurons in hidden layer
+    # scaling factor (larger is less prone to overfitting?)
+    alpha = 2
+    n_hidden = x_train.shape[0]/(alpha * (n_features + n_labels))
+    print('n_hidden = ', n_hidden)
     # Construct keras sequential model
     model = keras.Sequential()
     # input layer
     model.add(keras.layers.Dense(n_features, activation='sigmoid'))
     # hidden layers
-    model.add(keras.layers.Dense((n_features+n_classes)/2, activation='sigmoid'))
+    model.add(keras.layers.Dense(n_hidden, activation='sigmoid'))
     # output layer
-    model.add(keras.layers.Dense(n_classes, activation='softmax'))
+    model.add(keras.layers.Dense(n_labels, activation='softmax'))
     # compile
     model.compile(loss='categorical_crossentropy',
                   optimizer='Adam',
                   metrics=['accuracy'])
 
     # fit the model
-    history = model.fit(x_train, y_train, epochs=50, validation_split=0.10)
+    history = model.fit(x_train, y_train, epochs=300, validation_split=0.10)
+
+    # prediction - get probabilities and guesses from test data
+    y_prob = model.predict(x_test)
+    y_pred = y_prob.argmax(axis=-1)
+    # get test labels and prediction labels back using label encoder
+    y_test_labels = label_encoder.inverse_transform(y_test.argmax(axis=-1))
+    y_pred_labels = label_encoder.inverse_transform(y_pred)
+    # analytics time!
+    # declare multi-plot figure
+    fig = plt.figure()
+    plot_probability_matrix(y_test_labels, y_prob, figure=fig)
+    plot_confusion_matrix(y_test_labels, y_pred_labels, figure=fig)
+
+    print('--'*20)
+    print(classification_report(y_test_labels, y_pred_labels))
+    print('--'*20)
+    
+    history_fig = plot_nn_history(history)
+    plt.figure(history_fig.number)
+    plt.show()
