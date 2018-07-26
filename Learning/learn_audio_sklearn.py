@@ -89,7 +89,7 @@ for each class. This function plots a confusion-matrix-like chart by
 averaging over all samples in the class, the probabilities of the sample
 being a member of each class according to the Random Forest.
 """
-def plot_probability_matrix(test_data, predicted_data, figure=None):
+def plot_probability_matrix(test_data, predicted_data, figure=None, subplot_indices=221):
     classes = np.unique(test_data)
     matrix = np.zeros(shape=(len(classes), len(classes)))
     # loop over each class
@@ -102,7 +102,7 @@ def plot_probability_matrix(test_data, predicted_data, figure=None):
         matrix[:, i] = np.mean(class_probs, axis=0)
     if figure is not None:
         # plot a confusion-matrix-like chart
-        figure.add_subplot(2,2,1)
+        figure.add_subplot(subplot_indices)
         plt.imshow(matrix,
                    interpolation='nearest', cmap=plt.cm.Blues)
         plt.colorbar()
@@ -122,10 +122,49 @@ def plot_probability_matrix(test_data, predicted_data, figure=None):
 
     return matrix
 
+# A function to plot the standard deviations of probabilities (see probability matrix)
+# The subplot configuration defaults to this matrix overlaying the confusion matrix
+# (i.e. it occupies spot 224 by default). This is done because it's nicer to have a confusion
+# matrix on its own rather than 5 plots on a single figure
+def plot_proba_std_matrix(test_data, predicted_data, figure=None, subplot_indices=224):
+    classes = np.unique(test_data)
+    matrix = np.zeros(shape=(len(classes), len(classes)))
+    # loop over each class
+    for i in range(len(classes)):
+        # locate classes in test_data and match indices to predicted_data
+        class_name = classes[i]
+        indices = np.where(np.asarray(test_data) == class_name)
+        class_probs = predicted_data[indices]
+        # average over all samples in each class and find the std of the prediction percentage
+        matrix[:, i] = np.std(class_probs, axis=0)
+    if figure is not None:
+        # plot a confusion-matrix-like chart
+        figure.add_subplot(subplot_indices)
+        plt.imshow(matrix,
+                   interpolation='nearest', cmap=plt.cm.Blues)
+        plt.colorbar()
+        tick_marks = np.arange(len(classes))
+        plt.xticks(tick_marks, classes, rotation=45)
+        plt.yticks(tick_marks, classes)
+        plt.title("Matrix of standard deviations in probabilities")
+        fmt = '.2f'
+        thresh = matrix.max() / 2.
+        for i, j in itertools.product(range(matrix.shape[0]), range(matrix.shape[1])):
+            plt.text(j, i, format(matrix[i, j], fmt),
+                     horizontalalignment="center",
+                     color="white" if matrix[i, j] > thresh else "black")
+      #  plt.tight_layout()
+        plt.ylabel('True label')
+        plt.xlabel('Predicted label')
 
+    return matrix
+
+
+
+    
 # A function to compute and plot a ROC curve. Makes use of the "roc_curve"
 # function provided by sklearn.
-def plot_roc_curve(test_data, predicted_data, figure=None):
+def plot_roc_curve(test_data, predicted_data, figure=None, subplot_indices=222):
     classes = np.unique(test_data)
     n_classes = len(classes)
     # loop over classes
@@ -154,7 +193,7 @@ def plot_roc_curve(test_data, predicted_data, figure=None):
 
     # Plot ROC (Macro)
     if figure is not None:
-        figure.add_subplot(2,2,2)
+        figure.add_subplot(subplot_indices)
         plt.plot(all_fpr, mean_tpr,
                  label='macro-average ROC curve (area = {0:0.2f})'.format(roc_auc),
                  linewidth=4)
@@ -173,7 +212,7 @@ def plot_roc_curve(test_data, predicted_data, figure=None):
 # plot confusion matrix - code adapted from sklearn manual page
 # This function prints and plots the confusion matrix.
 # Normalization can be applied by setting `normalize=True`.
-def plot_confusion_matrix(test_data, predicted_data, normalize=False, figure=None):
+def plot_confusion_matrix(test_data, predicted_data, normalize=False, figure=None, subplot_indices=224):
     classes = np.unique(test_data)
     # compute confusion matrix
     cm = confusion_matrix(test_data, predicted_data)
@@ -184,7 +223,7 @@ def plot_confusion_matrix(test_data, predicted_data, normalize=False, figure=Non
         print('Showing confusion matrix, without normalization')
     # print(cm)
     if figure is not None:
-        figure.add_subplot(2,2,4)
+        figure.add_subplot(subplot_indices)
         plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
         plt.title('Confusion matrix')
         plt.colorbar()
@@ -205,7 +244,7 @@ def plot_confusion_matrix(test_data, predicted_data, normalize=False, figure=Non
 
 
 # A function to plot feature importances
-def plot_feature_importances(importances, feature_names, std, figure=None, title="Feature Importances"):
+def plot_feature_importances(importances, feature_names, std, figure=None, subplot_indices=223, title="Feature Importances"):
     indices = np.argsort(importances)[::-1]
     # get feature names
     feature_names_importanceorder = []
@@ -214,7 +253,7 @@ def plot_feature_importances(importances, feature_names, std, figure=None, title
 
     # Plot it yo
     if figure is not None:
-        figure.add_subplot(2, 2, 3)
+        figure.add_subplot(subplot_indices)
     else:
         plt.figure()
 
@@ -381,7 +420,7 @@ if __name__ == '__main__':
     fig_unpruned = plt.figure()
     plot_probability_matrix(artists_test, artists_proba, figure=fig_unpruned)
     plot_roc_curve(artists_test, artists_proba, figure=fig_unpruned)
-    plot_confusion_matrix(artists_test, artists_pred, figure=fig_unpruned)
+    plot_proba_std_matrix(artists_test, artists_proba, figure=fig_unpruned)
 
     # plot importances unpruned
     
@@ -392,7 +431,8 @@ if __name__ == '__main__':
     title_unpruned = """n_est={0}, train-test={1}%, Accuracy={2:.3f}""".format(n_estimators, train_percent*100, accuracy_before, 40)
     plot_feature_importances(importances_unpruned, feature_names, std_unpruned, figure=fig_unpruned, title=title_unpruned)
 
-    
+    cm_unpruned = plt.figure()
+    plot_confusion_matrix(artists_test, artists_pred, figure=cm_unpruned, subplot_indices=111)
     
     # you could loop over trees to find out how many before you accuracy maxes output
     '''
@@ -428,9 +468,9 @@ if __name__ == '__main__':
     lsvc = LinearSVC(C=feature_selection_threshold, penalty="l1", dual=False).fit(
         features_train, artists_train)
     rfc = RandomForestClassifier(n_estimators=n_estimators, random_state=2)
-    modelselect = 'lsvc'  # set accordingly
+    modelselect = 'rfc'  # set accordingly
     pipeline = Pipeline([
-        ('feature_selection', SelectFromModel(lsvc)),
+        ('feature_selection', SelectFromModel(rfc)),
         ('classification', RandomForestClassifier(
             n_estimators=n_estimators, random_state=2, class_weight='balanced'))
     ])
@@ -457,7 +497,7 @@ if __name__ == '__main__':
     fig_pruned = plt.figure()
     plot_probability_matrix(artists_test, artists_important_proba, figure=fig_pruned)
     plot_roc_curve(artists_test, artists_important_proba, figure=fig_pruned)
-    plot_confusion_matrix(artists_test, artists_important_pred, figure=fig_pruned)
+    plot_proba_std_matrix(artists_test, artists_important_proba, figure=fig_pruned)
 
     
     # Now make get feature importances with standard deviations
@@ -472,6 +512,10 @@ if __name__ == '__main__':
     # grab the pruned feature names from plot_feature_importances, and plot the chart
     feature_names_importanceorder_pruned = plot_feature_importances(importances_pruned, feature_names, std_pruned, figure=fig_pruned, title=title_long)
 
+    # Plot pruned confusion matrix
+    cm_pruned = plt.figure()
+    plot_confusion_matrix(artists_test, artists_important_pred, figure=cm_pruned, subplot_indices=111)
+    
     # see which features were removed
     no_features = len(feature_names_importanceorder_pruned)
     print('Started with {0} features, now using {1}'.format(
@@ -497,8 +541,9 @@ if __name__ == '__main__':
             )
 
     # construct figures dict
-    figures_dict = {'rnd_forest_unpruned_graphs': fig_unpruned, 'rnd_forest_pruned_graphs': fig_pruned}
-    savedir = '/raid/scratch/sen/learning_results/sklearn/LSVC/'
+    figures_dict = {'rnd_forest_unpruned_graphs': fig_unpruned, 'rnd_forest_cm_unpruned': cm_unpruned,
+                    'rnd_forest_pruned_graphs': fig_pruned, 'rnd_forest_cm_pruned': cm_pruned}
+    savedir = '/raid/scratch/sen/learning_results/more_features/sklearn/rfc'
     dir_name = '{0}_selection_threshold'.format(feature_selection_threshold)
     save_figs(figures_dict, meta, savedir, dir_name)
 
