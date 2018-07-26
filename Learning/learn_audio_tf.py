@@ -18,6 +18,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 from Learning.learn_audio_sklearn import prepare_data
 from Learning.learn_audio_sklearn import plot_probability_matrix
+from Learning.learn_audio_sklearn import plot_proba_std_matrix
 from Learning.learn_audio_sklearn import plot_roc_curve, plot_confusion_matrix
 
 
@@ -70,6 +71,8 @@ if __name__ == '__main__':
     n_features = len(feature_names)
     n_samples = len(all_labels)
 
+    print(feature_names)
+    
     # we need to turn our string vector of class labels into ints
     # use sklearn preprocessing
     label_encoder = preprocessing.LabelEncoder()
@@ -96,6 +99,7 @@ if __name__ == '__main__':
     # scaling factor (larger is less prone to overfitting?)
     alpha = 2
     n_hidden = x_train.shape[0]/(alpha * (n_features + n_labels))
+    n_hidden = 2
     print('n_hidden = ', n_hidden)
     # Construct keras sequential model
     model = keras.Sequential()
@@ -124,7 +128,8 @@ if __name__ == '__main__':
     fig = plt.figure()
     plot_probability_matrix(y_test_labels, y_prob, figure=fig)
     plot_confusion_matrix(y_test_labels, y_pred_labels, figure=fig)
-
+    plot_proba_std_matrix(y_test_labels, y_prob, figure=fig, subplot_indices=222)
+    
     print('--'*20)
     print(classification_report(y_test_labels, y_pred_labels))
     print('--'*20)
