@@ -13,9 +13,11 @@ import matplotlib
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow import keras
+from tensorflow.keras import regularizers
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
+from sklearn.metrics import accuracy_score
 from Learning.learn_audio_sklearn import prepare_data
 from Learning.learn_audio_sklearn import plot_probability_matrix
 from Learning.learn_audio_sklearn import plot_proba_std_matrix
@@ -99,23 +101,34 @@ if __name__ == '__main__':
     # scaling factor (larger is less prone to overfitting?)
     alpha = 2
     n_hidden = x_train.shape[0]/(alpha * (n_features + n_labels))
-    n_hidden = 2
+    if n_hidden < 2:
+        n_hidden = 2
+
+    n_hidden = 50
+    
     print('n_hidden = ', n_hidden)
     # Construct keras sequential model
     model = keras.Sequential()
     # input layer
     model.add(keras.layers.Dense(n_features, activation='sigmoid'))
     # hidden layers
-    model.add(keras.layers.Dense(n_hidden, activation='sigmoid'))
+    model.add(keras.layers.Dense(n_hidden, activation='sigmoid', activity_regularizer=regularizers.l2(0.01)))
+    model.add(keras.layers.Dense(n_hidden, activation='linear'))
+    model.add(keras.layers.LeakyReLU(alpha=.2))
+    # model.add(keras.layers.Dense(n_hidden/2, activation='linear'))
+#    model.add(keras.layers.Dropout(0.3))
+   # model.add(keras.layers.LeakyReLU(alpha=.2))
+   # model.add(keras.layers.Dense(n_hidden/2, activation='sigmoid', activity_regularizer=regularizers.l2(0.07)))
     # output layer
     model.add(keras.layers.Dense(n_labels, activation='softmax'))
     # compile
     model.compile(loss='categorical_crossentropy',
+                 # loss='kullback_leibler_divergence',
                   optimizer='Adam',
                   metrics=['accuracy'])
 
     # fit the model
-    history = model.fit(x_train, y_train, epochs=300, validation_split=0.10)
+    history = model.fit(x_train, y_train, epochs=100, validation_split=0.10)
 
     # prediction - get probabilities and guesses from test data
     y_prob = model.predict(x_test)
@@ -128,11 +141,18 @@ if __name__ == '__main__':
     fig = plt.figure()
     plot_probability_matrix(y_test_labels, y_prob, figure=fig)
     plot_confusion_matrix(y_test_labels, y_pred_labels, figure=fig)
-    plot_proba_std_matrix(y_test_labels, y_prob, figure=fig, subplot_indices=222)
-    
+    # plot_proba_std_matrix(y_test_labels, y_prob, figure=fig, subplot_indices=223)
+    plot_roc_curve(y_test_labels, y_prob, figure=fig)
+
+    accuracy = accuracy_score(y_test_labels, y_pred_labels)
+
+    print('number of features : {0}'.format(n_features))
+    print('accuracy = {0}'.format(accuracy))
     print('--'*20)
     print(classification_report(y_test_labels, y_pred_labels))
     print('--'*20)
+    print('Model summary')
+    print(model.summary())
     
     history_fig = plot_nn_history(history)
     plt.figure(history_fig.number)

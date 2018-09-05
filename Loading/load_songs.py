@@ -412,7 +412,7 @@ if __name__ == "__main__":
     # create song database, songdb:
     songname_tmp = []
     songpath_tmp = []
-    load_path_root = '/raid/scratch/sen/adverts/'
+    load_path_root = '/raid/scratch/sen/adverts2/'
     load_filename = sys.argv[1]   # take command line arg for filename
     path = load_path_root + load_filename + '/'
     print(path)
