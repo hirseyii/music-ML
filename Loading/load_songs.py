@@ -91,7 +91,7 @@ def get_features_mean(song, sr, hop_length, n_fft):
 
         # =========Split by frequency bands and compute RMSE features============
         # [5,25] Choose number of bands, do low and high resolution?
-        band_resolution = [5]
+        band_resolution = [5, 12, 25]
         bands_dict = OrderedDict()
         for no_bands in band_resolution:
             # note that as n_fft is 2050 (I've decided this is sensible resolution), bands/10=freq
@@ -282,44 +282,80 @@ def get_features_mean(song, sr, hop_length, n_fft):
         def rms_func(y): return np.sqrt(np.mean(y**2))
         # --------polyfeat---------
         linear_poly = lb.feature.poly_features(y=song, sr=sr, hop_length=hop_length, n_fft=n_fft, order=1)
+        
+        wrms5_poly0 = compute_on_chunks(rms_func, 5, S=linear_poly[0, :], sr=sr, hop_length=hop_length, n_fft=n_fft)
         wrms3_poly0 = compute_on_chunks(rms_func, 3, S=linear_poly[0, :], sr=sr, hop_length=hop_length, n_fft=n_fft)
         wrms1_poly0 = compute_on_chunks(rms_func, 1, S=linear_poly[0, :], sr=sr, hop_length=hop_length, n_fft=n_fft)
+        wrms_5_poly0 = compute_on_chunks(rms_func, .5, S=linear_poly[0, :], sr=sr, hop_length=hop_length, n_fft=n_fft)
+
+        wrms5_poly1 = compute_on_chunks(rms_func, 5, S=linear_poly[1, :], sr=sr, hop_length=hop_length, n_fft=n_fft)
         wrms3_poly1 = compute_on_chunks(rms_func, 3, S=linear_poly[1, :], sr=sr, hop_length=hop_length, n_fft=n_fft)
         wrms1_poly1 = compute_on_chunks(rms_func, 1, S=linear_poly[1, :], sr=sr, hop_length=hop_length, n_fft=n_fft)
+        wrms_5_poly1 = compute_on_chunks(rms_func, .5, S=linear_poly[1, :], sr=sr, hop_length=hop_length, n_fft=n_fft)
 
         windowed_dict.update({
+            'wrms5_poly0_std': np.std(wrms5_poly0),
+            'wrms5_poly0_skew': skew(wrms5_poly0),
+            'wrms5_poly0_kurtosis': kurtosis(wrms5_poly0),
             'wrms3_poly0_std': np.std(wrms3_poly0),
             'wrms3_poly0_skew': skew(wrms3_poly0),
             'wrms3_poly0_kurtosis': kurtosis(wrms3_poly0),
             'wrms1_poly0_std': np.std(wrms1_poly0),
             'wrms1_poly0_skew': skew(wrms1_poly0),
             'wrms1_poly0_kurtosis': kurtosis(wrms1_poly0),
+            'wrms_5_poly0_std': np.std(wrms_5_poly0),
+            'wrms_5_poly0_skew': skew(wrms_5_poly0),
+            'wrms_5_poly0_kurtosis': kurtosis(wrms_5_poly0),
+            'wrms5_poly1_std': np.std(wrms5_poly1),
+            'wrms5_poly1_skew': skew(wrms5_poly1),
+            'wrms5_poly1_kurtosis': kurtosis(wrms5_poly1),
             'wrms3_poly1_std': np.std(wrms3_poly1),
             'wrms3_poly1_skew': skew(wrms3_poly1),
             'wrms3_poly1_kurtosis': kurtosis(wrms3_poly1),
             'wrms1_poly1_std': np.std(wrms1_poly1),
             'wrms1_poly1_skew': skew(wrms1_poly1),
-            'wrms1_poly1_kurtosis': kurtosis(wrms1_poly1)
+            'wrms1_poly1_kurtosis': kurtosis(wrms1_poly1),
+            'wrms_5_poly1_std': np.std(wrms_5_poly1),
+            'wrms_5_poly1_skew': skew(wrms_5_poly1),
+            'wrms_5_poly1_kurtosis': kurtosis(wrms_5_poly1)
         })
 
         # -------harmonic + percussive--------
+        wrms5_harm = compute_on_chunks(rms_func, 5, y=y_harmonic, sr=sr, hop_length=hop_length, n_fft=n_fft)
         wrms3_harm = compute_on_chunks(rms_func, 3, y=y_harmonic, sr=sr, hop_length=hop_length, n_fft=n_fft)
         wrms1_harm = compute_on_chunks(rms_func, 1, y=y_harmonic, sr=sr, hop_length=hop_length, n_fft=n_fft)
+        wrms_5_harm = compute_on_chunks(rms_func, .5, y=y_harmonic, sr=sr, hop_length=hop_length, n_fft=n_fft)
+
+        wrms5_perc = compute_on_chunks(rms_func, 5, y=y_percussive, sr=sr, hop_length=hop_length, n_fft=n_fft)
         wrms3_perc = compute_on_chunks(rms_func, 3, y=y_percussive, sr=sr, hop_length=hop_length, n_fft=n_fft)
         wrms1_perc = compute_on_chunks(rms_func, 1, y=y_percussive, sr=sr, hop_length=hop_length, n_fft=n_fft)
+        wrms_5_perc = compute_on_chunks(rms_func, .5, y=y_percussive, sr=sr, hop_length=hop_length, n_fft=n_fft)
         windowed_dict.update({
+            'wrms5_harm_std': np.std(wrms5_harm),
+            'wrms5_harm_skew': skew(wrms5_harm),
+            'wrms5_harm_kurtosis': kurtosis(wrms5_harm),
             'wrms3_harm_std': np.std(wrms3_harm),
             'wrms3_harm_skew': skew(wrms3_harm),
             'wrms3_harm_kurtosis': kurtosis(wrms3_harm),
             'wrms1_harm_std': np.std(wrms1_harm),
             'wrms1_harm_skew': skew(wrms1_harm),
             'wrms1_harm_kurtosis': kurtosis(wrms1_harm),
+            'wrms_5_harm_std': np.std(wrms_5_harm),
+            'wrms_5_harm_skew': skew(wrms_5_harm),
+            'wrms_5_harm_kurtosis': kurtosis(wrms_5_harm),
+
+            'wrms5_perc_std': np.std(wrms5_perc),
+            'wrms5_perc_skew': skew(wrms5_perc),
+            'wrms5_perc_kurtosis': kurtosis(wrms5_perc),
             'wrms3_perc_std': np.std(wrms3_perc),
             'wrms3_perc_skew': skew(wrms3_perc),
             'wrms3_perc_kurtosis': kurtosis(wrms3_perc),
             'wrms1_perc_std': np.std(wrms1_perc),
             'wrms1_perc_skew': skew(wrms1_perc),
             'wrms1_perc_kurtosis': kurtosis(wrms1_perc),
+            'wrms_5_perc_std': np.std(wrms_5_perc),
+            'wrms_5_perc_skew': skew(wrms_5_perc),
+            'wrms_5_perc_kurtosis': kurtosis(wrms_5_perc)
         })
 
 
