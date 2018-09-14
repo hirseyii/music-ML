@@ -420,7 +420,7 @@ if __name__ == '__main__':
     fig_unpruned = plt.figure()
     plot_probability_matrix(artists_test, artists_proba, figure=fig_unpruned)
     plot_roc_curve(artists_test, artists_proba, figure=fig_unpruned)
-    plot_proba_std_matrix(artists_test, artists_proba, figure=fig_unpruned)
+  #  plot_proba_std_matrix(artists_test, artists_proba, figure=fig_unpruned)
 
     # plot importances unpruned
     
@@ -431,8 +431,8 @@ if __name__ == '__main__':
     title_unpruned = """n_est={0}, train-test={1}%, Accuracy={2:.3f}""".format(n_estimators, train_percent*100, accuracy_before, 40)
     plot_feature_importances(importances_unpruned, feature_names, std_unpruned, figure=fig_unpruned, title=title_unpruned)
 
-    cm_unpruned = plt.figure()
-    plot_confusion_matrix(artists_test, artists_pred, figure=cm_unpruned, subplot_indices=111)
+  #  cm_unpruned = plt.figure()
+    plot_confusion_matrix(artists_test, artists_pred, figure=fig_unpruned)
     
     # you could loop over trees to find out how many before you accuracy maxes output
     '''
@@ -464,7 +464,7 @@ if __name__ == '__main__':
     # an important note is that the pipeline automatically creates new feature data after removing pruned features.
 
     # first choose a model to prune features, then put it in pipeline - there are many we could try
-    feature_selection_threshold = 0.1
+    feature_selection_threshold = 0.005
     lsvc = LinearSVC(C=feature_selection_threshold, penalty="l1", dual=False).fit(
         features_train, artists_train)
     rfc = RandomForestClassifier(n_estimators=n_estimators, random_state=2)
@@ -513,8 +513,8 @@ if __name__ == '__main__':
     feature_names_importanceorder_pruned = plot_feature_importances(importances_pruned, feature_names, std_pruned, figure=fig_pruned, title=title_long)
 
     # Plot pruned confusion matrix
-    cm_pruned = plt.figure()
-    plot_confusion_matrix(artists_test, artists_important_pred, figure=cm_pruned, subplot_indices=111)
+   # cm_pruned = plt.figure()
+    plot_confusion_matrix(artists_test, artists_important_pred, figure=fig_pruned)
     
     # see which features were removed
     no_features = len(feature_names_importanceorder_pruned)
@@ -540,11 +540,25 @@ if __name__ == '__main__':
             '{0}\n\n{1}\n\n{2}\n\n'.format(nn_report, forest_unpruned_report, forest_pruned_report)
             )
 
+    # more separate figures : The feature importances are really hard to see when there are many features
+    fig_unpruned_importances = plt.figure()
+    plot_feature_importances(importances_unpruned, feature_names, std_unpruned,
+                             figure=fig_unpruned_importances, subplot_indices=111,
+                             title="Feature Importances - Unpruned")
+
+    fig_pruned_importances = plt.figure()
+    plot_feature_importances(importances_pruned, feature_names, std_pruned,
+                             figure=fig_pruned_importances, subplot_indices=111,
+                             title="Feature Importances - Pruned")
     # construct figures dict
-    figures_dict = {'rnd_forest_unpruned_graphs': fig_unpruned, 'rnd_forest_cm_unpruned': cm_unpruned,
-                    'rnd_forest_pruned_graphs': fig_pruned, 'rnd_forest_cm_pruned': cm_pruned}
-    savedir = '/raid/scratch/sen/learning_results/more_features/sklearn/rfc'
-    dir_name = '{0}_selection_threshold'.format(feature_selection_threshold)
-    save_figs(figures_dict, meta, savedir, dir_name)
+    figures_dict = {'rnd_forest_unpruned_graphs': fig_unpruned,
+                    #'rnd_forest_cm_unpruned': cm_unpruned,
+                    'rnd_forest_pruned_graphs': fig_pruned,
+                    #'rnd_forest_cm_pruned': cm_pruned,
+                    'rnd_forest_unpruned_importances': fig_unpruned_importances,
+                    'rnd_forest_pruned_importances': fig_pruned_importances}
+    savedir = '/raid/scratch/sen/learning_results_report/419_features/sklearn/'
+    # dir_name = 
+    save_figs(figures_dict, meta, savedir)
 
     plt.show()

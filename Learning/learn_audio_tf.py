@@ -104,29 +104,41 @@ if __name__ == '__main__':
     if n_hidden < 2:
         n_hidden = 2
 
-    n_hidden = 50
-    
+    n_hidden = 7
+
     print('n_hidden = ', n_hidden)
     # Construct keras sequential model
     model = keras.Sequential()
+    """
     # input layer
-    model.add(keras.layers.Dense(n_features, activation='sigmoid'))
+    model.add(keras.layers.Dropout(0.2))
+    model.add(keras.layers.Dense(n_features, activation='relu'))
     # hidden layers
-    model.add(keras.layers.Dense(n_hidden, activation='sigmoid', activity_regularizer=regularizers.l2(0.01)))
-    model.add(keras.layers.Dense(n_hidden, activation='linear'))
-    model.add(keras.layers.LeakyReLU(alpha=.2))
-    # model.add(keras.layers.Dense(n_hidden/2, activation='linear'))
-#    model.add(keras.layers.Dropout(0.3))
-   # model.add(keras.layers.LeakyReLU(alpha=.2))
-   # model.add(keras.layers.Dense(n_hidden/2, activation='sigmoid', activity_regularizer=regularizers.l2(0.07)))
+    model.add(keras.layers.Dropout(0.3))
+    model.add(keras.layers.Dense(n_hidden*4, activation='relu'))
+    model.add(keras.layers.Dropout(0.3))
+    model.add(keras.layers.Dense(n_hidden, activation='relu'))
     # output layer
+    model.add(keras.layers.Dropout(0.2))
     model.add(keras.layers.Dense(n_labels, activation='softmax'))
+    
+    """
+    model.add(keras.layers.Dropout(0.4))
+    model.add(keras.layers.Dense(n_features, activation='sigmoid'))
+    model.add(keras.layers.Dropout(0.4))
+    model.add(keras.layers.Dense(n_hidden, activation='sigmoid'))
+    model.add(keras.layers.Dropout(0.4))
+    model.add(keras.layers.Dense(n_labels, activation='softmax'))
+    
+    # optimizer
+    adam = keras.optimizers.Adam(lr=0.0005, decay=0.01)
     # compile
     model.compile(loss='categorical_crossentropy',
-                 # loss='kullback_leibler_divergence',
                   optimizer='Adam',
                   metrics=['accuracy'])
 
+    
+    
     # fit the model
     history = model.fit(x_train, y_train, epochs=100, validation_split=0.10)
 
@@ -139,8 +151,10 @@ if __name__ == '__main__':
     # analytics time!
     # declare multi-plot figure
     fig = plt.figure()
+    #fig_cm = plt.figure()
     plot_probability_matrix(y_test_labels, y_prob, figure=fig)
     plot_confusion_matrix(y_test_labels, y_pred_labels, figure=fig)
+    #plot_confusion_matrix(y_test_labels, y_pred_labels, subplot_indices=111, figure=fig_cm)
     # plot_proba_std_matrix(y_test_labels, y_prob, figure=fig, subplot_indices=223)
     plot_roc_curve(y_test_labels, y_prob, figure=fig)
 
