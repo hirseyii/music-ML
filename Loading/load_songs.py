@@ -91,7 +91,7 @@ def get_features_mean(song, sr, hop_length, n_fft):
 
         # =========Split by frequency bands and compute RMSE features============
         # [5,25] Choose number of bands, do low and high resolution?
-        band_resolution = [5, 12, 25]
+        band_resolution = [5, 12, 25] # NOTE THAT THESE NUMBERS ARE THE NUMBER OF BANDS + 1 DUE TO 0 OFFSET
         bands_dict = OrderedDict()
         for no_bands in band_resolution:
             # note that as n_fft is 2050 (I've decided this is sensible resolution), bands/10=freq
@@ -448,7 +448,8 @@ if __name__ == "__main__":
     # create song database, songdb:
     songname_tmp = []
     songpath_tmp = []
-    load_path_root = '/raid/scratch/sen/adverts2/'
+    ###load_path_root = '/raid/scratch/sen/adverts2/'
+    load_path_root = '/raid/scratch/sen/song_lib/'
     load_filename = sys.argv[1]   # take command line arg for filename
     path = load_path_root + load_filename + '/'
     print(path)
