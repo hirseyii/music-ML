@@ -77,6 +77,7 @@ def run_nn(train_perc, all_features, all_labels, label_encoder):
     # print('n_hidden = ', n_hidden)
     # Construct keras sequential model
     model = keras.Sequential()
+    """
     # input layer
     model.add(keras.layers.Dense(n_features, activation='sigmoid'))
     # hidden layers
@@ -86,6 +87,14 @@ def run_nn(train_perc, all_features, all_labels, label_encoder):
     # output layer
     model.add(keras.layers.Dense(n_labels, activation='softmax'))
     # compile
+    """
+    model.add(keras.layers.Dropout(0.4))
+    model.add(keras.layers.Dense(n_features, activation='sigmoid'))
+    model.add(keras.layers.Dropout(0.4))
+    model.add(keras.layers.Dense(n_hidden, activation='sigmoid'))
+    model.add(keras.layers.Dropout(0.4))
+    model.add(keras.layers.Dense(n_labels, activation='softmax'))
+
     model.compile(loss='categorical_crossentropy',
                   # loss='kullback_leibler_divergence',
                   optimizer='Adam',
@@ -134,10 +143,10 @@ if __name__ == '__main__':
     # This changes the size of created figures (including saving)
     # adjust for your display if necessary
     matplotlib.rcParams['figure.figsize'] = [18, 9]
-    """
+    
     # load in previously saved data we will use similar calling idioms
     # to the sklearn version.
-    path = '/raid/scratch/sen/adverts2/data_lib/'
+    path = '/raid/scratch/sen/adverts2/more_features/'
     
     all_data = glob.glob(path + '/*_data.pkl')
     # first we want to get all our data loaded in
@@ -157,13 +166,11 @@ if __name__ == '__main__':
     all_labels = keras.utils.to_categorical(all_labels)
     all_features = np.array(all_features)
     
-
-    
-    acc_vals = np.zeros((16, 4))
-    for i in range(16):
+    acc_vals = np.zeros((18, 5))
+    for i in range(18):
         train_perc = (i+1)/20
-        repeats = np.zeros((4))
-        for j in range(4):
+        repeats = np.zeros((5))
+        for j in range(5):
             repeats[j] = run_nn(train_perc, all_features, all_labels, label_encoder)
             print(repeats)
             
@@ -171,43 +178,17 @@ if __name__ == '__main__':
         
     print(acc_vals)
     
-    repeats = np.zeros((4))
-    for j in range(4):
-        repeats[j] = run_nn(0.95, all_features, all_labels, label_encoder)
-        print(repeats)
-    """
-    acc_vals = np.matrix([[0.27115789, 0.27115789, 0.28757895, 0.27831579],
-                          [0.35288889, 0.32444444, 0.31333333, 0.332],
-                          [0.34117647, 0.33411765, 0.33835294, 0.32329412],
-                          [0.364, 0.3645, 0.386, 0.354],
-                          [0.39306667, 0.38773333, 0.392, 0.3792],
-                          [0.39828571, 0.40228571, 0.38685714, 0.39714286],
-                          [0.43138462, 0.40738462, 0.416, 0.41661538],
-                          [0.42866667, 0.41733333, 0.43066667, 0.42333333],
-                          [0.424, 0.43054545, 0.43490909, 0.448],
-                          [0.4632, 0.4544, 0.4416, 0.452],
-                          [0.46666667, 0.46133333, 0.45155556, 0.45866667],
-                          [0.474, 0.465, 0.468, 0.477],
-                          [0.47428571, 0.49485714, 0.47085714, 0.48342857],
-                          [0.48133333, 0.492, 0.484, 0.48533333],
-                          [0.5424, 0.5408, 0.5168, 0.5312],
-                          [0.542, 0.548, 0.528, 0.534],
-                          [0.568, 0.56, 0.53066667, 0.552],
-                          [0.576, 0.58, 0.572, 0.564],
-                          [0.56, 0.584, 0.616, 0.6]])
-                          
     mean = np.mean(acc_vals, axis=1)
     stdev = np.std(acc_vals, axis=1)
-    x = np.linspace(0.05, 0.95, len(mean))
+    x = np.linspace(0.05, 0.9, len(mean))
 
     plt.figure()
     plt.errorbar(x, mean, yerr=stdev)
     plt.xlabel('Train fraction')
     plt.ylabel('Accuracy')
-    plt.xticks(np.linspace(.1, .9, 9))
+    #plt.xticks(np.linspace(.1, .9, 9))
     plt.grid()
     plt.title('Accuracy against training fraction for 2500 samples, 419 features, neural network')
-
 
     plt.show()
     

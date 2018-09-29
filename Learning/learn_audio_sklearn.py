@@ -82,6 +82,7 @@ def prepare_data(all_data_in, data_path):
         # create master lists of features and artists for the machine learning later
         all_features += features
         all_artists += artists
+    print(len(feature_names))
     return all_features, all_artists, feature_names
 """
 We want to produce a chart showing the mean prediction probabilities
@@ -225,10 +226,11 @@ def plot_confusion_matrix(test_data, predicted_data, normalize=False, figure=Non
     if figure is not None:
         figure.add_subplot(subplot_indices)
         plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
-        plt.title('Confusion matrix')
+        plt.title('Random Forest - Confusion matrix')
+        #plt.title('Multi-layer perceptron - Confusion matrix')
         plt.colorbar()
         tick_marks = np.arange(len(classes))
-        plt.xticks(tick_marks, classes, rotation=90)
+        plt.xticks(tick_marks, classes, rotation=45)
         plt.yticks(tick_marks, classes)
 
         fmt = '.2f' if normalize else 'd'

@@ -156,7 +156,7 @@ if __name__ == '__main__':
     plot_confusion_matrix(y_test_labels, y_pred_labels, figure=fig)
     #plot_confusion_matrix(y_test_labels, y_pred_labels, subplot_indices=111, figure=fig_cm)
     # plot_proba_std_matrix(y_test_labels, y_prob, figure=fig, subplot_indices=223)
-    plot_roc_curve(y_test_labels, y_prob, figure=fig)
+    # plot_roc_curve(y_test_labels, y_prob, figure=fig)
 
     accuracy = accuracy_score(y_test_labels, y_pred_labels)
 

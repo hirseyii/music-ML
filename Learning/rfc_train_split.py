@@ -12,6 +12,7 @@ import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 import tensorflow as tf
+import itertools
 from tensorflow import keras
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
@@ -22,6 +23,8 @@ from Learning.learn_audio_sklearn import prepare_data
 from Learning.learn_audio_sklearn import plot_probability_matrix
 from Learning.learn_audio_sklearn import plot_proba_std_matrix
 from Learning.learn_audio_sklearn import plot_roc_curve, plot_confusion_matrix
+from multiprocessing.dummy import Pool as ThreadPool
+from functools import partial
 
 
 """
@@ -54,8 +57,6 @@ def plot_nn_history(fit_history):
 
 
 def run_rfc(train_perc, all_features, all_labels):
-    # train test split
-
     features_train, features_test, artists_train, artists_test = train_test_split(
         all_features, all_labels, train_size=train_perc, random_state=0, stratify=all_labels)
 
@@ -63,7 +64,7 @@ def run_rfc(train_perc, all_features, all_labels):
     # Build a forest and compute the feature importances
     n_estimators = 2000  # number of trees?
     forest = RandomForestClassifier(
-        n_estimators=n_estimators, random_state=2, class_weight='balanced')
+        n_estimators=n_estimators, class_weight='balanced')
     forest.fit(features_train, artists_train)
     artists_pred = forest.predict(features_test)
     artists_proba = forest.predict_proba(features_test)
@@ -116,7 +117,7 @@ if __name__ == '__main__':
     
     # load in previously saved data we will use similar calling idioms
     # to the sklearn version.
-    path = '/raid/scratch/sen/adverts2/data_lib/'
+    path = '/raid/scratch/sen/adverts2/more_features/'
     
     all_data = glob.glob(path + '/*_data.pkl')
     # first we want to get all our data loaded in
@@ -126,63 +127,62 @@ if __name__ == '__main__':
     n_samples = len(all_labels)
 
     print(feature_names)
-    
+    """
     # we need to turn our string vector of class labels into ints
     # use sklearn preprocessing
-#    label_encoder = preprocessing.LabelEncoder()
-#    all_labels = label_encoder.fit_transform(all_labels)
+    label_encoder = preprocessing.LabelEncoder()
+    all_labels = label_encoder.fit_transform(all_labels)
     # now transform to one-hot (could use tf if we want but it makes a tensor)
     ## all_labels = tf.one_hot(all_labels, n_labels)
-#    all_labels = keras.utils.to_categorical(all_labels)
-#    all_features = np.array(all_features)
+    all_labels = keras.utils.to_categorical(all_labels)
+    all_features = np.array(all_features)
     
-    
-    acc_vals = np.zeros((16, 1))
-    for i in range(16):
+    acc_vals = np.zeros((18, 5))
+    for i in range(18):
         train_perc = (i+1)/20
-        repeats = np.zeros((1))
-        for j in range(1):
+        repeats = np.zeros((5))
+        for j in range(5):
             repeats[j] = run_rfc(train_perc, all_features, all_labels)
             print(repeats)
-            
+        
+        train_indices = list(range(5))
+        pool = ThreadPool(5)
+        repeats = pool.starmap(run_rfc, zip(train_indices, itertools.repeat(all_features), itertools.repeat(all_labels)))
+        pool.close()
+        pool.join()
         acc_vals[i] = repeats
         
     print(acc_vals)
-    
-    
     """
-    acc_vals = np.matrix([[0.27115789, 0.27115789, 0.28757895, 0.27831579],
-                          [0.35288889, 0.32444444, 0.31333333, 0.332],
-                          [0.34117647, 0.33411765, 0.33835294, 0.32329412],
-                          [0.364, 0.3645, 0.386, 0.354],
-                          [0.39306667, 0.38773333, 0.392, 0.3792],
-                          [0.39828571, 0.40228571, 0.38685714, 0.39714286],
-                          [0.43138462, 0.40738462, 0.416, 0.41661538],
-                          [0.42866667, 0.41733333, 0.43066667, 0.42333333],
-                          [0.424, 0.43054545, 0.43490909, 0.448],
-                          [0.4632, 0.4544, 0.4416, 0.452],
-                          [0.46666667, 0.46133333, 0.45155556, 0.45866667],
-                          [0.474, 0.465, 0.468, 0.477],
-                          [0.47428571, 0.49485714, 0.47085714, 0.48342857],
-                          [0.48133333, 0.492, 0.484, 0.48533333],
-                          [0.5424, 0.5408, 0.5168, 0.5312],
-                          [0.542, 0.548, 0.528, 0.534],
-                          [0.568, 0.56, 0.53066667, 0.552],
-                          [0.576, 0.58, 0.572, 0.564],
-                          [0.56, 0.584, 0.616, 0.6]])
-    """                   
+    acc_vals = [[0.29136842, 0.29515789, 0.29515789, 0.28884211, 0.29094737],
+                [0.35155556, 0.35066667, 0.34933333, 0.35333333, 0.35288889],
+                [0.38541176, 0.38541176, 0.384,      0.38682353, 0.39011765],
+                [0.411,  0.4045, 0.4145, 0.4065, 0.4055],
+                [0.44373333, 0.43893333, 0.43306667, 0.4368,     0.43466667],
+                [0.45142857, 0.45257143, 0.45085714, 0.44857143, 0.44285714],
+                [0.45046154, 0.46092308, 0.45661538, 0.45907692, 0.45538462],
+                [0.45533333, 0.46,       0.468,      0.46466667, 0.46      ],
+                [0.47272727, 0.47636364, 0.47636364, 0.47054545, 0.48218182],
+                [0.4896, 0.4784, 0.4824, 0.476,  0.4744],
+                [0.48088889, 0.50044444, 0.49333333, 0.47733333, 0.48977778],
+                [0.491, 0.49,  0.498, 0.493, 0.5  ],
+                [0.48,       0.48685714, 0.47885714, 0.46742857, 0.488     ],
+                [0.49866667, 0.50933333, 0.50133333, 0.504,      0.49066667],
+                [0.5184, 0.5104, 0.5104, 0.512,  0.5152],
+                [0.538, 0.526, 0.514, 0.516, 0.522],
+                [0.51733333, 0.52533333, 0.512,      0.50933333, 0.50933333],
+                [0.52,  0.524, 0.528, 0.528, 0.516]]
+    
     mean = np.mean(acc_vals, axis=1)
-    #stdev = np.std(acc_vals, axis=1)
-    x = np.linspace(0.05, 0.95, len(mean))
+    stdev = np.std(acc_vals, axis=1)
+    x = np.linspace(0.05, 0.9, len(mean))
 
     plt.figure()
-    plt.plot(x, mean)
+    plt.errorbar(x, mean, yerr=stdev)
     plt.xlabel('Train fraction')
     plt.ylabel('Accuracy')
-    plt.xticks(np.linspace(.1, .9, 9))
+    #plt.xticks(np.linspace(.1, .9, 9))
     plt.grid()
-    plt.title('Accuracy against training fraction for 2500 samples, 419 features, random forest')
+    plt.title('Accuracy against training fraction for 2500 samples, 419 features, neural network')
 
-
-    plt.show()
-    
+    plt.show()    
